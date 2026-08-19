@@ -419,18 +419,28 @@
     padding: 0 1rem;
     height: 44px;
     border-top: var(--border-width) solid var(--color-border);
-    border-bottom: var(--border-width) solid var(--color-border);
     gap: 1rem;
-    overflow: hidden;
   }
 
-  /* 进度横线 ::before */
+  /* 静态底线（替代 border-bottom，z 低于进度条） */
+  .post-header-row::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: var(--border-width);
+    background-color: var(--color-border);
+    z-index: 0;
+  }
+
+  /* 进度横线 ::before，叠在 ::after 之上 */
   .post-header-row::before {
     content: '';
     position: absolute;
     left: 0;
-    bottom: -0.5px; /* 压在 border-bottom 上 */
-    height: 2px;
+    bottom: 0;
+    height: 1.5px;
     width: var(--post-progress, 0%);
     background-color: var(--color-accent);
     transition: width 0.1s linear;
@@ -483,46 +493,19 @@
     min-width: 2ch;
   }
 
-  /* ── 加载中：扫描条 ── */
-  .post-loading-bar {
-    position: relative;
-    height: 2px;
-    background-color: var(--color-border);
-    overflow: hidden;
-    border-radius: 1px;
-    margin: 2rem var(--space-page) 0;
+  /* ── 加载中：header 底线呼吸动画 ── */
+  /* 加载时给 post-header-row 加 .is-loading，::before 变为动画线 */
+  .post-header-row.is-loading::before {
+    width: 100%;
+    transition: none;
+    transform-origin: center;
+    animation: loading-breath 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
   }
 
-  .post-loading-bar::before,
-  .post-loading-bar::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    height: 100%;
-    background-color: var(--color-accent);
-    border-radius: 1px;
-  }
-
-  /* 第一段：短线，快速冲过 */
-  .post-loading-bar::before {
-    width: 30%;
-    animation: loading-sweep-a 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  /* 第二段：长线，追尾收拢 */
-  .post-loading-bar::after {
-    width: 60%;
-    animation: loading-sweep-b 1.4s cubic-bezier(0.4, 0, 0.6, 1) 0.7s infinite;
-  }
-
-  @keyframes loading-sweep-a {
-    0%   { left: -30%; }
-    100% { left: 110%; }
-  }
-
-  @keyframes loading-sweep-b {
-    0%   { left: -60%; }
-    100% { left: 110%; }
+  @keyframes loading-breath {
+    0%   { transform: scaleX(0.04); opacity: 0.5; }
+    50%  { transform: scaleX(1);    opacity: 1;   }
+    100% { transform: scaleX(0.04); opacity: 0.5; }
   }
 
   /* ── 加载失败：Reload 按钮 ── */
@@ -1508,10 +1491,11 @@
     postPage.classList.add('is-open');
     postPage.setAttribute('aria-hidden', 'false');
 
-    // 重置内容区 → 加载条
-    postContent.innerHTML = '<div class="post-loading-bar"></div>';
+    // 重置内容区，header 进入加载态
+    postContent.innerHTML = '';
     postContent.scrollTop = 0;
     postHeaderRow.style.setProperty('--post-progress', '0%');
+    postHeaderRow.classList.add('is-loading');
 
     // 重置计时器为正常状态
     resetTimerNormal();
@@ -1530,6 +1514,7 @@
 
     // 失败处理
     if (loadFailed) {
+      postHeaderRow.classList.remove('is-loading');
       setTimerError();
       postContent.innerHTML = '<div class="post-reload-wrap"><button class="post-reload-btn" id="post-reload-btn">Reload</button></div>';
       document.getElementById('post-reload-btn').addEventListener('click', function () {
@@ -1539,6 +1524,7 @@
     }
 
     // 渲染
+    postHeaderRow.classList.remove('is-loading');
     postContent.innerHTML = marked.parse(rawMarkdown);
 
     // 估算阅读时间
