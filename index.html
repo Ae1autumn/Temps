@@ -806,24 +806,25 @@
     opacity: 1;
   }
 
-  /* ── 评论面板：clip-path 从toolbar下边缘展开，阴影向下 ── */
+  /* ── 评论面板：从toolbar下边缘整体向下滑入，阴影向下 ── */
   #panel-comments {
     height: 180px;
     /* top 紧贴 post-toolbar-row 下边缘，left/right 由 JS 设置，无上间距 */
+    overflow: hidden;
   }
   #panel-comments .panel-box {
-    clip-path: inset(0 0 100% 0 round var(--radius-card));
-    transition: clip-path 0.34s cubic-bezier(0.32, 0, 0.1, 1);
+    transform: translateY(-100%);
+    transition: transform 0.34s cubic-bezier(0.32, 0, 0.1, 1);
   }
   #panel-comments.is-open .panel-box {
-    clip-path: inset(0 0 0% 0 round var(--radius-card));
+    transform: translateY(0);
   }
   #panel-comments .panel-shadow {
     box-shadow: 0 12px 28px rgba(0,0,0,0.15);
-    transform: translate(0, 0);
+    transform: translate(0, -100%);
+    opacity: 0;
     transition: transform 0.28s cubic-bezier(0.32, 0, 0.1, 1) 0.06s,
                 opacity   0.28s cubic-bezier(0.32, 0, 0.1, 1) 0.06s;
-    clip-path: inset(0 0 100% 0 round var(--radius-card));
   }
   [data-theme="dark"] #panel-comments .panel-shadow {
     box-shadow: 0 12px 32px rgba(0,0,0,0.52);
@@ -831,7 +832,6 @@
   #panel-comments.is-open .panel-shadow {
     transform: translate(0, 9px);
     opacity: 1;
-    clip-path: inset(0 0 0% 0 round var(--radius-card));
   }
 
   /* ── 搜索面板：从右滑入，阴影左下 ── */
