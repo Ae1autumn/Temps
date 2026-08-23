@@ -429,7 +429,7 @@
     left: 0;
     bottom: 0;
     width: 100%;
-    height: var(--border-width);
+    height: 0.5px;
     background-color: var(--color-border);
     z-index: 0;
   }
@@ -440,7 +440,7 @@
     position: absolute;
     left: 0;
     bottom: 0;
-    height: 1.5px;
+    height: 0.5px;
     width: var(--post-progress, 0%);
     background-color: var(--color-accent);
     transition: width 0.1s linear;
@@ -753,17 +753,7 @@
     will-change: transform;
   }
 
-  /* 阴影层：与本体同尺寸，靠 transform 偏移露出 */
-  .panel-shadow {
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-card);
-    pointer-events: none;
-    opacity: 0;
-    will-change: transform, opacity;
-  }
-
-  /* ── 章节面板：从左滑入，阴影右下 ── */
+  /* ── 章节面板：从左滑入 ── */
   #panel-chapters {
     width: 220px;
     /* top/left/bottom 由 JS 设置 */
@@ -775,24 +765,11 @@
   #panel-chapters.is-open .panel-box {
     transform: translateX(0);
   }
-  #panel-chapters .panel-shadow {
-    box-shadow: 10px 10px 24px rgba(0,0,0,0.18);
-    transform: translate(0, 0);
-    transition: transform 0.28s cubic-bezier(0.32, 0, 0.1, 1) 0.06s,
-                opacity   0.28s cubic-bezier(0.32, 0, 0.1, 1) 0.06s;
-  }
-  [data-theme="dark"] #panel-chapters .panel-shadow {
-    box-shadow: 10px 10px 28px rgba(0,0,0,0.55);
-  }
-  #panel-chapters.is-open .panel-shadow {
-    transform: translate(8px, 8px);
-    opacity: 1;
-  }
 
-  /* ── 评论面板：从toolbar下边缘整体向下滑入，阴影向下 ── */
+  /* ── 评论面板：从toolbar下边缘整体向下滑入 ── */
   #panel-comments {
     height: 180px;
-    /* top 紧贴 post-toolbar-row 下边缘，left/right 由 JS 设置，无上间距 */
+    /* top 紧贴 post-toolbar-row 下边缘，left/right 由 JS 设置 */
     overflow: hidden;
   }
   #panel-comments .panel-box {
@@ -802,22 +779,8 @@
   #panel-comments.is-open .panel-box {
     transform: translateY(0);
   }
-  #panel-comments .panel-shadow {
-    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
-    transform: translate(0, -100%);
-    opacity: 0;
-    transition: transform 0.28s cubic-bezier(0.32, 0, 0.1, 1) 0.06s,
-                opacity   0.28s cubic-bezier(0.32, 0, 0.1, 1) 0.06s;
-  }
-  [data-theme="dark"] #panel-comments .panel-shadow {
-    box-shadow: 0 12px 32px rgba(0,0,0,0.52);
-  }
-  #panel-comments.is-open .panel-shadow {
-    transform: translate(0, 9px);
-    opacity: 1;
-  }
 
-  /* ── 搜索面板：从右滑入，阴影左下 ── */
+  /* ── 搜索面板：从右滑入 ── */
   #panel-search {
     width: 220px;
     /* top/right/bottom 由 JS 设置 */
@@ -829,29 +792,10 @@
   #panel-search.is-open .panel-box {
     transform: translateX(0);
   }
-  #panel-search .panel-shadow {
-    box-shadow: -10px 10px 24px rgba(0,0,0,0.18);
-    transform: translate(0, 0);
-    transition: transform 0.28s cubic-bezier(0.32, 0, 0.1, 1) 0.06s,
-                opacity   0.28s cubic-bezier(0.32, 0, 0.1, 1) 0.06s;
-  }
-  [data-theme="dark"] #panel-search .panel-shadow {
-    box-shadow: -10px 10px 28px rgba(0,0,0,0.55);
-  }
-  #panel-search.is-open .panel-shadow {
-    transform: translate(-8px, 8px);
-    opacity: 1;
-  }
 
-  /* ── 关闭时：移除 is-open，阴影先收（靠 transition-delay 反向） ── */
-  .panel:not(.is-open) .panel-shadow {
-    transition: transform 0.22s cubic-bezier(0.4, 0, 1, 1),
-                opacity   0.22s cubic-bezier(0.4, 0, 1, 1),
-                clip-path 0.22s cubic-bezier(0.4, 0, 1, 1);
-  }
+  /* ── 关闭时 ── */
   .panel:not(.is-open) .panel-box {
-    transition: transform 0.34s cubic-bezier(0.4, 0, 1, 1) 0.08s,
-                clip-path 0.34s cubic-bezier(0.4, 0, 1, 1) 0.08s;
+    transition: transform 0.34s cubic-bezier(0.4, 0, 1, 1) 0.08s;
   }
 
   /* ════ 复制 modal  z-index: 10 ════ */
@@ -1112,19 +1056,16 @@
 
 <!-- 面板：章节  z-index: 8 -->
 <div class="panel" id="panel-chapters">
-  <div class="panel-shadow"></div>
   <div class="panel-box"></div>
 </div>
 
 <!-- 面板：评论  z-index: 8 -->
 <div class="panel" id="panel-comments">
-  <div class="panel-shadow"></div>
   <div class="panel-box"></div>
 </div>
 
 <!-- 面板：搜索  z-index: 8 -->
 <div class="panel" id="panel-search">
-  <div class="panel-shadow"></div>
   <div class="panel-box"></div>
 </div>
 
