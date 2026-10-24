@@ -139,10 +139,9 @@
     stroke-linejoin: round;
   }
 
-  /* ─── SLOGAN ─── z-index: 1 */
+  /* ─── SLOGAN ─── */
   .slogan-section {
     position: relative;
-    z-index: 1;
     padding: 1rem 0 calc(var(--space-section) * 0.8);
   }
 
@@ -207,6 +206,9 @@
     overflow-y: hidden;
     width: 100%;
     display: block;
+    /* 右缘渐隐，提示长标题可横向滚动 */
+    -webkit-mask-image: linear-gradient(to right, #000 88%, transparent);
+    mask-image: linear-gradient(to right, #000 88%, transparent);
   }
 
   .card-excerpt {
@@ -219,6 +221,9 @@
     overflow-wrap: break-word;
     max-height: calc(1.65em * 4);
     overflow-y: auto;
+    /* 底部渐隐，提示超出 4 行可继续滚动阅读 */
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+    mask-image: linear-gradient(to bottom, #000 70%, transparent);
   }
 
   .card-meta {
@@ -443,7 +448,7 @@
     height: 0.5px;
     width: var(--post-progress, 0%);
     background-color: var(--color-accent);
-    transition: width 0.1s linear;
+    transition: width 0.1s linear, opacity 0.1s linear;
     z-index: 1;
   }
 
@@ -494,18 +499,19 @@
   }
 
   /* ── 加载中：header 底线呼吸动画 ── */
-  /* 加载时给 post-header-row 加 .is-loading，::before 变为动画线 */
+  /* 加载时给 post-header-row 加 .is-loading，::before 变为动画线。
+     用 width/opacity 动画而非 transform：移除 class 时 width 由
+     animation 状态平滑过渡到 var(--post-progress)，不会突跳 */
   .post-header-row.is-loading::before {
     width: 100%;
     transition: none;
-    transform-origin: center;
     animation: loading-breath 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
   }
 
   @keyframes loading-breath {
-    0%   { transform: scaleX(0.04); opacity: 0.5; }
-    50%  { transform: scaleX(1);    opacity: 1;   }
-    100% { transform: scaleX(0.04); opacity: 0.5; }
+    0%   { width: 4%;   opacity: 0.5; }
+    50%  { width: 100%; opacity: 1;   }
+    100% { width: 4%;   opacity: 0.5; }
   }
 
   /* ── 加载失败：Reload 按钮 ── */
@@ -793,9 +799,10 @@
     transform: translateX(0);
   }
 
-  /* ── 关闭时 ── */
+  /* ── 关闭时（pointer-events 提前失效，避免动画期间挡住下方卡片） ── */
   .panel:not(.is-open) .panel-box {
     transition: transform 0.34s cubic-bezier(0.4, 0, 1, 1) 0.08s;
+    pointer-events: none;
   }
 
   /* ════ 复制 modal  z-index: 10 ════ */
@@ -883,7 +890,7 @@
     <div class="articles-grid" id="articles-container">
 
       <!-- Card 1 -->
-      <article class="card">
+      <article class="card" tabindex="0" role="link" data-slug="sea-before-disappear" data-src="https://raw.githubusercontent.com/Ae2autumn/ae2autumn.github.io/refs/heads/main/docs/posts/c1.md">
         <div class="card-corner" aria-hidden="true"></div>
         <h2 class="card-title">在消逝之前，我还想再看一眼那片海</h2>
         <div class="card-tags">
@@ -904,7 +911,7 @@
       </article>
 
       <!-- Card 2 -->
-      <article class="card">
+      <article class="card" tabindex="0" role="link" data-slug="about-writing" data-src="https://raw.githubusercontent.com/Ae2autumn/ae2autumn.github.io/refs/heads/main/O-MD/inv.md">
         <h2 class="card-title">关于写作这件事，我一直想说清楚</h2>
         <div class="card-tags">
           <span class="card-tag">写作</span>
@@ -923,7 +930,7 @@
       </article>
 
       <!-- Card 3 -->
-      <article class="card">
+      <article class="card" tabindex="0" role="link" data-slug="css-theme-system" data-src="https://shz.al/iksi">
         <h2 class="card-title">用 CSS 变量构建一个真正可维护的主题系统</h2>
         <div class="card-tags">
           <span class="card-tag">CSS</span>
@@ -943,7 +950,7 @@
       </article>
 
       <!-- Card 4 -->
-      <article class="card">
+      <article class="card" tabindex="0" role="link" data-slug="ai-loneliness" data-src="./posts/ai-loneliness.md">
         <h2 class="card-title">夜里三点，我试着和一个 AI 聊了聊孤独</h2>
         <div class="card-tags">
           <span class="card-tag">AI</span>
@@ -977,7 +984,7 @@
 <!-- ═══════════════════════════════════════════════
      ARTICLE PAGE  z-index: 6-8
 ═══════════════════════════════════════════════ -->
-<div id="post-page" aria-hidden="true">
+<div id="post-page" aria-hidden="true" inert>
 
   <!-- 上：blur 幕，点击关闭 -->
   <div class="post-blur" id="post-blur"></div>
@@ -1049,10 +1056,10 @@
     <div class="post-content" id="post-content"></div>
 
   </div><!-- /post-body -->
-</div><!-- /post-page -->
 
-<!-- 全局面板遮罩  z-index: 7 -->
-<div id="panel-overlay"></div>
+  <!-- 全局面板遮罩  z-index: 7 -->
+  <div id="panel-overlay"></div>
+</div><!-- /post-page -->
 
 <!-- 面板：章节  z-index: 8 -->
 <div class="panel" id="panel-chapters">
@@ -1088,6 +1095,8 @@
     btn.setAttribute('aria-expanded', 'true');
     overlay.classList.add('is-open');
     overlay.setAttribute('aria-hidden', 'false');
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
   }
 
   function closeMenu() {
@@ -1096,6 +1105,8 @@
     btn.setAttribute('aria-expanded', 'false');
     overlay.classList.remove('is-open');
     overlay.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
   }
 
   btn.addEventListener('click', function () { isOpen ? closeMenu() : openMenu(); });
@@ -1142,11 +1153,18 @@
   let currentMeta = null;
   let rawMarkdown  = '';
   let loadFailed   = false;
+  let returnFocusEl = null;
+  let postLoadToken = 0;
+  let currentAbort  = null; // 进行中的 fetch（AbortController）
+
+  /* 原子守卫：仅当当前文章内容"渲染完毕且进度恢复完毕"才允许写 localStorage。
+     覆盖两个窗口：① fetch / marked 加载期间；② restoreScrollPosition
+     等图片加载期间（此时 scrollTop 仍为 0，写入会覆盖真实进度） */
+  let contentReady = false;
 
   /* ── 计时器 ── */
   let timerInterval  = null;
   let usedSeconds    = 0;
-  let hasReachedEnd  = false;
 
   /* ── 面板状态 ── */
   let openPanel = null; // 'chapters' | 'comments' | 'search' | null
@@ -1195,13 +1213,13 @@
   /* ════════════════════════════════════════════
      非点击事件劫持（面板打开时）
   ════════════════════════════════════════════ */
-  const HIJACK_EVENTS = ['scroll', 'wheel', 'touchmove', 'keydown'];
+  const HIJACK_EVENTS = ['scroll', 'wheel', 'touchmove'];
 
   function hijackHandler(e) {
     const panelEl = { chapters: panelChapters, comments: panelComments, search: panelSearch }[openPanel];
     if (panelEl && panelEl.contains(e.target)) return;
     e.stopPropagation();
-    if (e.type !== 'keydown') e.preventDefault();
+    e.preventDefault();
   }
 
   function startHijack() {
@@ -1225,7 +1243,17 @@
     search:   panelSearch,
   };
 
+  /* 面板名 -> 关闭动画结束后隐藏（移除 is-ready）的 timer id */
+  const panelCloseTimers = {};
+  /* 面板切换时的链式打开 timer id（A 关闭后延时打开 B） */
+  let pendingOpen = null;
+
   function _doOpen(name) {
+    // 取消指向本面板的关闭计时，防止旧 timer 把刚打开的面板又藏起来；
+    // 同时取消未触发的链式打开（如 A→B 后快速又点开 C）
+    clearTimeout(panelCloseTimers[name]);
+    delete panelCloseTimers[name];
+    if (pendingOpen) { clearTimeout(pendingOpen); pendingOpen = null; }
     const el = PANEL_EL[name];
     syncPanelPositions();
     el.classList.add('is-ready', 'is-open');
@@ -1234,28 +1262,34 @@
     startHijack();
   }
 
-  function _doClose(name, cb) {
+  function _doClose(name) {
     const el = PANEL_EL[name];
+    clearTimeout(panelCloseTimers[name]);
     el.classList.remove('is-open');
     panelOverlay.classList.remove('is-active');
     openPanel = null;
     stopHijack();
     // 等动画结束后隐藏
-    setTimeout(function () {
+    panelCloseTimers[name] = setTimeout(function () {
+      delete panelCloseTimers[name];
       el.classList.remove('is-ready');
-      if (cb) cb();
     }, 440); // box delay(0.08s) + duration(0.34s) + buffer
   }
 
-  function closeAllPanels(cb) {
-    if (!openPanel) { if (cb) cb(); return; }
-    _doClose(openPanel, cb);
+  function closeAllPanels() {
+    // 未触发的链式打开一并取消（打开新文章 / 关闭文章页时不应再弹出面板）
+    if (pendingOpen) { clearTimeout(pendingOpen); pendingOpen = null; }
+    if (openPanel) _doClose(openPanel);
   }
 
   function togglePanel(name) {
     if (openPanel === name) { _doClose(name); return; }
     if (openPanel) {
-      _doClose(openPanel, function () { _doOpen(name); });
+      _doClose(openPanel);
+      pendingOpen = setTimeout(function () {
+        pendingOpen = null;
+        _doOpen(name);
+      }, 440);
       return;
     }
     _doOpen(name);
@@ -1285,24 +1319,34 @@
      localStorage 持久化
   ════════════════════════════════════════════ */
   function loadState(slug) {
+    if (!slug) return null;
     try {
       const raw = localStorage.getItem('post_state_' + slug);
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (!s || typeof s !== 'object') return null;
+      if (!Number.isFinite(s.usedSeconds) || s.usedSeconds < 0) return null;
+      if (!Number.isFinite(s.scrollTop) || s.scrollTop < 0) return null;
+      if (typeof s.hasReachedEnd !== 'boolean') return null;
+      return s;
+    } catch (e) { console.warn('读取进度失败:', e); return null; }
   }
 
   function saveState(slug) {
-    if (!slug) return;
+    if (!slug || !contentReady) return; // 内容未就绪（加载中/恢复进度中）绝不写入
     const state = {
-      scrollTop:    postContent.scrollTop,
-      usedSeconds:  usedSeconds,
-      hasReachedEnd: hasReachedEnd,
+      scrollTop:     postContent.scrollTop,
+      usedSeconds:   usedSeconds,
+      hasReachedEnd: isArticleFullyRead(), // 实时计算，不落内存闩值
     };
-    try { localStorage.setItem('post_state_' + slug, JSON.stringify(state)); } catch {}
+    try { localStorage.setItem('post_state_' + slug, JSON.stringify(state)); }
+    catch (e) { console.warn('保存进度失败:', e); }
   }
 
   function clearState(slug) {
-    try { localStorage.removeItem('post_state_' + slug); } catch {}
+    if (!slug) return;
+    try { localStorage.removeItem('post_state_' + slug); }
+    catch (e) { console.warn('清除进度失败:', e); }
   }
 
   /* ════════════════════════════════════════════
@@ -1365,7 +1409,61 @@
     const max = el.scrollHeight - el.clientHeight;
     const pct = max > 0 ? (el.scrollTop / max) * 100 : 0;
     postHeaderRow.style.setProperty('--post-progress', pct.toFixed(2) + '%');
-    if (pct >= 95 && !hasReachedEnd) hasReachedEnd = true;
+  }
+
+  /* 是否读到结尾（实时计算：滚到底，或内容本身无需滚动） */
+  function isArticleFullyRead() {
+    const el = postContent;
+    const max = el.scrollHeight - el.clientHeight;
+    if (max <= 0) return true;
+    return el.scrollTop >= max - 8;
+  }
+
+  /* 等图片撑开高度后再恢复位置，用户已手动滚动则不覆盖。
+     恢复完成（apply 执行）前 contentReady 保持 false：
+     ① 阻止生命周期内任何 saveState 写入 scrollTop=0；
+     ② onDone 回调完成后再 startTimer() */
+  function restoreScrollPosition(savedScrollTop, loadToken, onDone) {
+    const imgs = Array.prototype.slice.call(postContent.querySelectorAll('img'));
+    let applied = false;
+    let userMoved = false;
+
+    function markUserMoved() { userMoved = true; }
+
+    function apply() {
+      if (applied) return;
+      applied = true;
+      postContent.removeEventListener('scroll', markUserMoved);
+      if (loadToken !== postLoadToken) return; // 期间已切换/关闭，由新一轮 openPost 接管
+      contentReady = true;
+      if (!userMoved) {
+        postContent.scrollTop = savedScrollTop || 0;
+        updateProgress();
+        updateChapterBlocks();
+      }
+      if (onDone) onDone();
+    }
+
+    if (!imgs.length) {
+      requestAnimationFrame(apply);
+      return;
+    }
+
+    postContent.addEventListener('scroll', markUserMoved, { passive: true });
+
+    let remaining = imgs.length;
+    function onSettle() {
+      remaining--;
+      if (remaining <= 0) requestAnimationFrame(apply);
+    }
+
+    imgs.forEach(function (img) {
+      if (img.complete) { onSettle(); return; }
+      img.addEventListener('load', onSettle, { once: true });
+      img.addEventListener('error', onSettle, { once: true });
+    });
+
+    setTimeout(apply, 1500);
   }
 
   /* ════════════════════════════════════════════
@@ -1379,10 +1477,11 @@
   }
 
   function getCurrentHeadings() {
-    const scrollTop = postContent.scrollTop;
+    const containerTop = postContent.getBoundingClientRect().top;
     let activeIdx = -1;
     for (let i = 0; i < headings.length; i++) {
-      if (headings[i].el.offsetTop - postContent.offsetTop <= scrollTop + 60) activeIdx = i;
+      const headingTop = headings[i].el.getBoundingClientRect().top - containerTop;
+      if (headingTop <= 60) activeIdx = i;
       else break;
     }
     if (activeIdx < 0) return { parent: '', child: '' };
@@ -1412,14 +1511,45 @@
     }
   }
 
+  /* 彻底清空章节指示器（换文章 / 加载失败时不能残留上一篇的章节） */
+  function resetChapterBlocks() {
+    headings = [];
+    currentChap1 = '';
+    currentChap2 = '';
+    chap1.textContent = '';
+    chapSep.classList.add('collapsed');
+    chap2.classList.add('collapsed');
+  }
+
   /* ════════════════════════════════════════════
      打开文章页
   ════════════════════════════════════════════ */
   async function openPost(slug, meta) {
+    const loadToken = ++postLoadToken;
+
+    // 切换文章前保存上一篇状态并停掉旧计时器
+    // （保存的这段是同步代码，此刻 postContent 仍是上一篇内容，读取值正确）
+    const wasLoading = postHeaderRow.classList.contains('is-loading');
+    if (currentSlug && currentSlug !== slug && !loadFailed && !wasLoading) {
+      if (isArticleFullyRead()) clearState(currentSlug);
+      else saveState(currentSlug);
+    }
+    pauseTimer();
+
+    /* ── 统一重置会话级状态（此后所有写入路径都会被 contentReady 拦截） ── */
+    contentReady = false;
+    usedSeconds = 0;
+    loadFailed = false;
+    rawMarkdown = '';
+    if (currentAbort) { currentAbort.abort(); currentAbort = null; }
+    resetChapterBlocks();
+
+    if (document.activeElement && document.activeElement.classList.contains('card')) {
+      returnFocusEl = document.activeElement;
+    }
+
     currentSlug = slug;
     currentMeta = meta;
-    hasReachedEnd = false;
-    usedSeconds   = 0;
     closeAllPanels();
 
     // 同步 blur 高度
@@ -1431,6 +1561,7 @@
     // 显示页面（动画）
     postPage.classList.add('is-open');
     postPage.setAttribute('aria-hidden', 'false');
+    postPage.inert = false;
 
     // 重置内容区，header 进入加载态
     postContent.innerHTML = '';
@@ -1443,18 +1574,32 @@
     postUsed.textContent = '00';
     postRead.textContent = '—';
 
-    // 加载 markdown
-    loadFailed = false;
+    // 加载 markdown（中断上一篇的进行中请求）
+    const aborter = new AbortController();
+    currentAbort = aborter;
     try {
-      const resp = await fetch(meta.src);
+      const resp = await fetch(meta.src, { signal: aborter.signal });
       if (!resp.ok) throw new Error('fetch failed');
       rawMarkdown = await resp.text();
-    } catch {
+    } catch (err) {
+      // abort 过期结果本身不算失败
+      if (loadToken !== postLoadToken || (err || {}).name === 'AbortError') return;
+      loadFailed = true;
+    }
+
+    // 期间用户已切换/关闭文章，丢弃过期结果
+    if (loadToken !== postLoadToken) return;
+    currentAbort = null;
+
+    // marked CDN 不可用时走失败态，避免 is-loading 永远卡住
+    if (!loadFailed && (typeof marked === 'undefined' || !marked.parse)) {
+      console.warn('marked 加载失败（CDN 不可达）');
       loadFailed = true;
     }
 
     // 失败处理
     if (loadFailed) {
+      resetChapterBlocks();
       postHeaderRow.classList.remove('is-loading');
       setTimerError();
       postContent.innerHTML = '<div class="post-reload-wrap"><button class="post-reload-btn" id="post-reload-btn">Reload</button></div>';
@@ -1475,21 +1620,19 @@
     // 构建章节
     buildHeadings();
     updateChapterBlocks();
+    updateProgress();
 
-    // 恢复持久化状态
+    // 恢复持久化状态；恢复完成（apply 执行 / contentReady=true）之前不开始计时，
+    // 计时不转也写不了盘，杜绝恢复期把 scrollTop=0 覆盖进 localStorage
     const saved = loadState(slug);
     if (saved && !saved.hasReachedEnd) {
-      usedSeconds = saved.usedSeconds || 0;
+      usedSeconds = saved.usedSeconds;
       renderTimer();
-      requestAnimationFrame(function () {
-        postContent.scrollTop = saved.scrollTop || 0;
-        updateProgress();
-        updateChapterBlocks();
-      });
+      restoreScrollPosition(saved.scrollTop, loadToken, startTimer);
+    } else {
+      contentReady = true;
+      startTimer();
     }
-
-    // 开始计时
-    startTimer();
   }
 
   /* ════════════════════════════════════════════
@@ -1497,13 +1640,15 @@
   ════════════════════════════════════════════ */
   function closePost() {
     if (!currentSlug) return;
+    postLoadToken++;
+    if (currentAbort) { currentAbort.abort(); currentAbort = null; }
     closeAllPanels();
 
-    // 保存或清除状态
-    if (hasReachedEnd) {
-      clearState(currentSlug);
-    } else {
-      saveState(currentSlug);
+    // 保存或清除状态（加载中/加载失败时保留原进度）
+    const isLoading = postHeaderRow.classList.contains('is-loading');
+    if (!loadFailed && !isLoading && contentReady) {
+      if (isArticleFullyRead()) clearState(currentSlug);
+      else saveState(currentSlug);
     }
 
     // 停止计时
@@ -1512,11 +1657,28 @@
     // 动画关闭
     postPage.classList.remove('is-open');
     postPage.setAttribute('aria-hidden', 'true');
+    // 动画结束后再置 inert，避免关闭动画期间焦点立即失效
+    postPage.addEventListener('transitionend', function onEnd(e) {
+      if (e.target !== postPage) return;
+      postPage.removeEventListener('transitionend', onEnd);
+      if (!postPage.classList.contains('is-open')) postPage.inert = true;
+    });
+    setTimeout(function () {
+      if (!postPage.classList.contains('is-open')) postPage.inert = true;
+    }, 600); // 兜底：transitionend 可能不触发
 
-    // 重置 hash
-    history.pushState('', document.title, window.location.pathname + window.location.search);
+    // 重置 hash（不新增历史记录）
+    try {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    } catch (e) {}
+
+    if (returnFocusEl) {
+      returnFocusEl.focus({ preventScroll: true });
+      returnFocusEl = null;
+    }
 
     currentSlug = null;
+    contentReady = false;
   }
 
   /* ════════════════════════════════════════════
@@ -1524,10 +1686,12 @@
   ════════════════════════════════════════════ */
   document.addEventListener('visibilitychange', function () {
     if (!currentSlug || loadFailed) return;
+    const isLoading = postHeaderRow.classList.contains('is-loading');
     if (document.visibilityState === 'hidden') {
       pauseTimer();
-      saveState(currentSlug);
-    } else {
+      // contentReady 守卫会自动跳过加载中/恢复进度中的写入
+      if (!isLoading) saveState(currentSlug);
+    } else if (!isLoading && contentReady) {
       startTimer();
     }
   });
@@ -1589,61 +1753,42 @@
      hash 路由
   ════════════════════════════════════════════ */
 
-  // mock data（data.json 未接入时用）
-  // 真实接入时替换为 fetch('data.json')
-  const MOCK_DATA = [
-    {
-      slug:  'sea-before-disappear',
-      title: '在消逝之前，我还想再看一眼那片海',
-      date:  '2025-11-04',
-      tags:  ['随笔','旅行','记忆'],
-      image: '',
-      src:   'https://raw.githubusercontent.com/Ae2autumn/ae2autumn.github.io/refs/heads/main/docs/posts/c1.md',
-      readMin: 6,
-    },
-    {
-      slug:  'about-writing',
-      title: '关于写作这件事，我一直想说清楚',
-      date:  '2025-10-17',
-      tags:  ['写作','思考'],
-      image: '',
-      src:   'https://raw.githubusercontent.com/Ae2autumn/ae2autumn.github.io/refs/heads/main/O-MD/inv.md',
-      readMin: 4,
-    },
-    {
-      slug:  'css-theme-system',
-      title: '用 CSS 变量构建一个真正可维护的主题系统',
-      date:  '2025-09-02',
-      tags:  ['CSS','前端','工程化'],
-      image: '',
-      src:   'https://shz.al/iksi',
-      readMin: 9,
-    },
-    {
-      slug:  'ai-loneliness',
-      title: '夜里三点，我试着和一个 AI 聊了聊孤独',
-      date:  '2025-08-11',
-      tags:  ['AI','孤独','随笔'],
-      image: '',
-      src:   './posts/ai-loneliness.md',
-      readMin: 7,
-    },
-  ];
+  /* ── 文章数据：以卡片 DOM 为唯一来源，避免 HTML/JS 双份数据需手动同步 ──
+     卡片需带 data-src 属性指向 markdown 源（title/date/tags 则直接读 DOM） */
+  const POSTS = Array.prototype.map.call(
+    document.querySelectorAll('#articles-container .card[data-slug]'),
+    function (card) {
+      return {
+        slug: card.dataset.slug,
+        title: (card.querySelector('.card-title') || {}).textContent || '',
+        date:  (card.querySelector('.card-date') || {}).textContent || '',
+        tags:  Array.prototype.map.call(
+          card.querySelectorAll('.card-tag'),
+          function (t) { return t.textContent.trim(); }
+        ),
+        src: card.dataset.src || '',
+      };
+    }
+  );
 
   function findMeta(slug) {
-    return MOCK_DATA.find(function (d) { return d.slug === slug; }) || null;
+    return POSTS.find(function (d) { return d.slug === slug; }) || null;
   }
 
   function handleHash() {
     const hash = window.location.hash; // e.g. #/post/sea-before-disappear
     const m = hash.match(/^#\/post\/(.+)$/);
     if (m) {
-      const slug = m[1];
-      const meta = findMeta(slug);
+      const meta = findMeta(m[1]);
       if (meta) {
-        openPost(slug, meta);
+        openPost(m[1], meta);
         return;
       }
+      // 非法文章标识：清掉 hash，避免刷新后每次都停留在失败态
+      console.warn('未找到文章: ' + m[1]);
+      try {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      } catch (e) {}
     }
     // 无匹配 → 如果文章页打开则关闭
     if (currentSlug) closePost();
@@ -1656,20 +1801,24 @@
   /* ════════════════════════════════════════════
      卡片点击 → 设置 hash
   ════════════════════════════════════════════ */
-  document.querySelectorAll('.card').forEach(function (card, idx) {
-    card.addEventListener('click', function () {
-      const meta = MOCK_DATA[idx];
-      if (meta) window.location.hash = '/post/' + meta.slug;
-    });
-  });
+  document.querySelectorAll('.card').forEach(function (card) {
+    const slug = card.dataset.slug;
+    if (!slug) return;
 
-  /* ════════════════════════════════════════════
-     浏览器后退
-  ════════════════════════════════════════════ */
-  window.addEventListener('popstate', function () {
-    if (currentSlug && !window.location.hash.includes('/post/')) {
-      closePost();
+    function openCard() {
+      if (findMeta(slug)) {
+        window.location.hash = '/post/' + slug;
+      } else {
+        console.warn('卡片缺少对应数据或 data-src: ' + slug);
+      }
     }
+
+    card.addEventListener('click', openCard);
+    card.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openCard();
+    });
   });
 
   /* ════════════════════════════════════════════
@@ -1679,6 +1828,14 @@
     syncBlurHeight();
     if (openPanel) syncPanelPositions();
   }, { passive: true });
+
+  /* iOS 地址栏收展不一定触发 window resize，用 visualViewport 同步 */
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function () {
+      syncBlurHeight();
+      if (openPanel) syncPanelPositions();
+    }, { passive: true });
+  }
 
 })();
 </script>
