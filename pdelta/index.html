@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Delta</title>
+<style>
+  :root {
+    --color-bg: #f7f6f3;
+    --color-border: #e3e0d9;
+    --color-text: #1d1d1b;
+    --color-text-secondary: #6f6b63;
+    --color-accent: #1d1d1b;
+    --color-accent-text: #ffffff;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "PingFang SC", "Noto Sans SC", sans-serif;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 顶栏 */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    height: 72px;
+    padding: 0 2.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .brand-logo {
+    width: 26px;
+    height: 26px;
+    display: block;
+  }
+
+  .brand-title {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    margin-left: auto;
+  }
+
+  .nav a {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+  }
+
+  .nav a:hover { color: var(--color-text); }
+
+  /* 主体：纯色背景 + 右侧盒子 */
+  .main {
+    position: relative;
+    min-height: calc(100vh - 72px);
+    padding: 2.5rem;
+  }
+
+  .panel {
+    position: absolute;
+    top: 50%;
+    right: 2.5rem;
+    transform: translateY(-50%);
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 2rem 1.75rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+
+  .panel-icon {
+    width: 48px;
+    height: 48px;
+    display: block;
+  }
+
+  .panel-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .panel-button {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-accent-text);
+    background: var(--color-accent);
+    border: 1px solid var(--color-accent);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  .panel-button:hover { opacity: 0.85; }
+
+  /* 窄屏时盒子回到正常文档流 */
+  @media (max-width: 720px) {
+    .header {
+      flex-wrap: wrap;
+      height: auto;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+    }
+
+    .nav {
+      gap: 1.25rem;
+      overflow-x: auto;
+      width: 100%;
+      padding-bottom: 0.25rem;
+    }
+
+    .main {
+      min-height: calc(100vh - 120px);
+      padding: 1.25rem;
+    }
+
+    .panel {
+      position: static;
+      transform: none;
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a class="brand" href="#">
+    <svg class="brand-logo" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 4 21 20H3L12 4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <span class="brand-title">Project Delta</span>
+  </a>
+
+  <nav class="nav">
+    <a href="#">介绍</a>
+    <a href="#">世界观介绍</a>
+    <a href="#">角色介绍</a>
+    <a href="#">提交</a>
+    <a href="#">联系我们</a>
+  </nav>
+</header>
+
+<main class="main">
+  <aside class="panel">
+    <svg class="panel-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10.25" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M12 6.5 18 17H6L12 6.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    </svg>
+    <h1 class="panel-title">Project Delta</h1>
+    <button class="panel-button" type="button">提交</button>
+  </aside>
+</main>
+
+</body>
+</html>
