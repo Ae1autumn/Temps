@@ -704,7 +704,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #panel-chapters.is-open .panel-box{transform:translateX(0)}
 #panel-search .panel-box{transform:translateX(calc(100% + 20px));transition:transform .36s var(--ease-spring)}
 #panel-search.is-open .panel-box{transform:translateX(0)}
-#panel-comments{height:180px;overflow:hidden}
+#panel-comments{
+  height:clamp(240px,62vh,560px);
+  overflow:hidden;
+}
 #panel-comments .panel-box{height:100%;transform:translateY(-100%);transition:transform .36s var(--ease-spring)}
 #panel-comments.is-open .panel-box{transform:translateY(0)}
 .panel:not(.is-open) .panel-box{transition:transform .36s cubic-bezier(.4,0,1,1) .08s;pointer-events:none}
@@ -784,11 +787,18 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .fade-b{-webkit-mask-image:linear-gradient(to top,transparent,#000 16px);mask-image:linear-gradient(to top,transparent,#000 16px)}
 .fade-t.fade-b{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 16px,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to bottom,transparent,#000 16px,#000 calc(100% - 16px),transparent)}
 
-/* 评论面板（占位） */
+/* 评论面板 */
+.cm-body{display:flex;flex-direction:column;overscroll-behavior:contain}
+.giscus-host{width:100%;flex:0 0 auto}
+.giscus-host[hidden]{display:none}
+.giscus-host iframe{width:100%!important}
+
+/* 未配置 key 或加载失败时的占位 */
 .comments-placeholder{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;
-  color:var(--text-3);
+  padding:2rem 1rem;text-align:center;color:var(--text-3);
 }
+.comments-placeholder[hidden]{display:none}
 .comments-placeholder svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
 .comments-placeholder p{font-size:.78rem;letter-spacing:.04em}
 .comments-placeholder .sub{font-family:var(--font-mono);font-size:.64rem;letter-spacing:.06em;opacity:.75}
@@ -846,6 +856,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 @media (max-width:560px){
   .post-chapter-block{max-width:38vw}
   .post-content{padding-top:1.6rem}
+  #panel-comments{height:70dvh}
 }
 </style>
 <base target="_blank">
@@ -1044,19 +1055,24 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   </div>
 </div>
 
-<!-- 评论面板（占位，待后端） -->
+<!-- 评论面板（giscus；未配置或加载失败时显示占位） -->
 <div class="panel" id="panel-comments" role="dialog" aria-label="评论">
   <div class="panel-box">
     <div class="panel-head">
       <span class="panel-title">评论</span>
-      <button class="panel-close" data-close-panel aria-label="关闭评论">
-        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
+      <div class="panel-head-actions">
+        <button class="panel-close" data-close-panel aria-label="关闭评论" title="关闭评论">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
     </div>
-    <div class="comments-placeholder">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <p>评论尚未开放</p>
-      <p class="sub">COMMENTS NEED A BACKEND — COMING LATER</p>
+    <div class="panel-body cm-body" id="cm-body">
+      <div class="giscus-host" id="giscus-host" hidden></div>
+      <div class="comments-placeholder" id="comments-fallback">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <p>评论尚未开放</p>
+        <p class="sub">COMMENTS NEED A BACKEND — COMING LATER</p>
+      </div>
     </div>
   </div>
 </div>
@@ -1166,6 +1182,22 @@ window.GOATCOUNTER = {
   pathPrefix: '/post/',
   cacheKey: 'ae_views_v1',
   cacheTTL: 30 * 60 * 1000
+};
+
+/* ── 评论（giscus）──
+   在 https://giscus.app 选好仓库和 category 后，把 repoId / categoryId 填进来。
+   前提：仓库开启 Discussions 并安装 giscus app。
+   repoId 或 categoryId 为空、脚本加载失败、giscus 返回错误时，回退到占位符。 */
+window.GISCUS = {
+  repo: 'Ae1autumn/Temps',
+  repoId: '',
+  category: 'Comments',
+  categoryId: '',
+  mapping: 'specific',
+  strict: '1',
+  reactionsEnabled: '1',
+  inputPosition: 'bottom',
+  lang: 'zh-CN'
 };
 
 /* 统计脚本是异步加载的：未就绪时先入队，加载完成后补发，
@@ -1885,9 +1917,12 @@ window.trackPostView = function (slug) {
       panelChapters.style.width = w + 'px';
       /* TOC 最大高度与普通模式保持一致 */
       panelChapters.style.maxHeight = (r.height * 0.55) + 'px';
+      const cmW = Math.min(r.width - GAP * 2, 640);
       panelComments.style.top = fsTop + 'px';
-      panelComments.style.left = (r.left + GAP) + 'px';
-      panelComments.style.right = (window.innerWidth - r.right + GAP) + 'px';
+      panelComments.style.maxHeight = Math.max(200, window.innerHeight - fsTop - GAP) + 'px';
+      panelComments.style.width = cmW + 'px';
+      panelComments.style.left = (r.left + (r.width - cmW) / 2) + 'px';
+      panelComments.style.right = 'auto';
       panelSearch.style.top = fsTop + 'px';
       panelSearch.style.right = Math.max(window.innerWidth - r.right + GAP, 8) + 'px';
       panelSearch.style.width = w + 'px';
@@ -1898,9 +1933,13 @@ window.trackPostView = function (slug) {
     panelChapters.style.left = Math.max(r.left + GAP, 8) + 'px';
     panelChapters.style.width = w + 'px';
     panelChapters.style.maxHeight = (r.height * 0.55) + 'px';
-    panelComments.style.top = (tr.bottom + GAP) + 'px';
-    panelComments.style.left = (r.left + GAP) + 'px';
-    panelComments.style.right = (window.innerWidth - r.right + GAP) + 'px';
+    const cmW = Math.min(r.width - GAP * 2, 640);
+    const cmTop = tr.bottom + GAP;
+    panelComments.style.top = cmTop + 'px';
+    panelComments.style.maxHeight = Math.max(200, window.innerHeight - cmTop - GAP) + 'px';
+    panelComments.style.width = cmW + 'px';
+    panelComments.style.left = (r.left + (r.width - cmW) / 2) + 'px';
+    panelComments.style.right = 'auto';
     panelSearch.style.top = (r.top + GAP) + 'px';
     panelSearch.style.right = Math.max(window.innerWidth - r.right + GAP, 8) + 'px';
     panelSearch.style.width = w + 'px';
@@ -1943,6 +1982,7 @@ window.trackPostView = function (slug) {
       requestAnimationFrame(function () { syncTocActive(true); updateVFade(tocBody); });
     }
     if (name === 'search') { setTimeout(function () { searchInput.focus(); }, 200); }
+    if (name === 'comments') mountGiscus();
     requestAnimationFrame(refreshVFades);
   }
   function _doClose(name) {
@@ -2691,6 +2731,96 @@ window.trackPostView = function (slug) {
     if (guardFailed()) return;
     togglePanel('comments');
   });
+
+  /* ── 评论（giscus）：首次打开时挂载；无 key / 失败回退占位 ── */
+  const giscusHost       = $('giscus-host');
+  const commentsFallback = $('comments-fallback');
+  const cmBody           = $('cm-body');
+  const GISCUS_ORIGIN    = 'https://giscus.app';
+  let giscusMounted = false;
+  let giscusFailed  = false;
+  let giscusTerm    = null;
+  let giscusTimer   = null;
+
+  function giscusTheme() {
+    return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+  }
+  function showCommentsFallback() {
+    clearTimeout(giscusTimer);
+    giscusFailed = true;
+    giscusHost.hidden = true;
+    giscusHost.innerHTML = '';
+    commentsFallback.hidden = false;
+  }
+  function sendGiscusConfig(extra) {
+    const frame = giscusHost.querySelector('iframe.giscus-frame');
+    if (!frame) return;
+    frame.contentWindow.postMessage({
+      giscus: { setConfig: Object.assign({ theme: giscusTheme() }, extra || {}) }
+    }, GISCUS_ORIGIN);
+  }
+  function mountGiscus() {
+    if (!currentSlug || giscusFailed) return;
+    const cfg = window.GISCUS || {};
+
+    /* 没填 repoId / categoryId 就当作未配置 */
+    if (!cfg.repoId || !cfg.categoryId) {
+      showCommentsFallback();
+      return;
+    }
+
+    if (giscusMounted) {
+      if (giscusTerm !== currentSlug) {
+        giscusTerm = currentSlug;
+        sendGiscusConfig({
+          term: giscusTerm,
+          backLink: location.origin + location.pathname + '#/post/' + giscusTerm
+        });
+        cmBody.scrollTop = 0;
+      }
+      return;
+    }
+
+    giscusMounted = true;
+    giscusTerm = currentSlug;
+    giscusHost.hidden = false;
+    commentsFallback.hidden = true;
+
+    const s = document.createElement('script');
+    s.src = 'https://giscus.app/client.js';
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.setAttribute('data-repo', cfg.repo);
+    s.setAttribute('data-repo-id', cfg.repoId);
+    s.setAttribute('data-category', cfg.category);
+    s.setAttribute('data-category-id', cfg.categoryId);
+    s.setAttribute('data-mapping', cfg.mapping || 'specific');
+    s.setAttribute('data-term', giscusTerm);
+    s.setAttribute('data-strict', cfg.strict || '1');
+    s.setAttribute('data-reactions-enabled', cfg.reactionsEnabled || '1');
+    s.setAttribute('data-emit-metadata', '0');
+    s.setAttribute('data-input-position', cfg.inputPosition || 'bottom');
+    s.setAttribute('data-theme', giscusTheme());
+    s.setAttribute('data-lang', cfg.lang || 'zh-CN');
+    s.onerror = showCommentsFallback;
+    giscusHost.appendChild(s);
+
+    /* 超时也没有出现 iframe，视为加载失败 */
+    giscusTimer = setTimeout(function () {
+      if (!giscusHost.querySelector('iframe.giscus-frame')) showCommentsFallback();
+    }, 12000);
+  }
+
+  window.addEventListener('message', function (e) {
+    if (e.origin !== GISCUS_ORIGIN || !e.data || !e.data.giscus) return;
+    if (e.data.giscus.error) { showCommentsFallback(); return; }
+    clearTimeout(giscusTimer);
+  });
+
+  /* 站点手动切主题 / 跟随系统变化时，同步 giscus 原生主题 */
+  new MutationObserver(function () {
+    if (giscusMounted && !giscusFailed) sendGiscusConfig();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   btnSearchPost.addEventListener('click', function () {
     if (guardFailed()) return;
     togglePanel('search');
