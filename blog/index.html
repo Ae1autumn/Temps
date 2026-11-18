@@ -573,14 +573,24 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content h5,.post-content h6{font-family:var(--font-display);font-weight:500;color:var(--text-2);margin:2rem 0 .8rem;line-height:1.4;scroll-margin-top:1rem}
 .post-content h5{font-size:.95rem}
 .post-content h6{font-size:.88rem;color:var(--text-3)}
-.post-content table{display:block;width:100%;overflow-x:auto;border-collapse:collapse;margin:0 0 1.2rem;font-size:.85rem;line-height:1.6}
+.post-content .table-wrap{overflow-x:auto;overflow-y:hidden;margin:0 0 1.2rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.post-content table{border-collapse:collapse;min-width:100%;font-size:.85rem;line-height:1.6}
 .post-content th,.post-content td{border:var(--hairline) solid var(--border);padding:.45rem .8rem;text-align:left;vertical-align:top}
 .post-content th{background:var(--surface);font-weight:600;color:var(--text);white-space:nowrap}
 .post-content td{color:var(--text-2)}
+/* marked 用 align 属性表达列对齐，优先级需盖过上面的 text-align */
+.post-content [align="center"]{text-align:center}
+.post-content [align="right"]{text-align:right}
 .post-content tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface) 55%,transparent)}
 .post-content li:has(> input[type="checkbox"]){list-style:none;margin-left:-1.4rem}
 .post-content input[type="checkbox"]{accent-color:var(--accent);width:.8rem;height:.8rem;margin:0 .45rem 0 0;vertical-align:-1px}
 .post-content del{color:var(--text-3);text-decoration-color:color-mix(in srgb,var(--accent) 70%,transparent)}
+
+/* 长文本防溢出：超长单词、URL、行内代码允许断行（代码块仍横向滚动） */
+.post-content p,.post-content li,.post-content blockquote{overflow-wrap:break-word}
+.post-content td,.post-content th{overflow-wrap:break-word;min-width:3em}
+.post-content a{overflow-wrap:anywhere}
+.post-content code{overflow-wrap:anywhere;word-break:break-word}
 
 /* 代码高亮配色（接入既有纸/墨/朱砂 token，暗色用提亮的变体） */
 :root{
@@ -1163,6 +1173,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
       image: function (href, title, text) {
         return '<img src="' + href + '" alt="' + text + '"' +
           (title ? ' title="' + title + '"' : '') + ' loading="lazy" decoding="async">';
+      },
+      /* 表格外包一层滚动容器：宽表格横向滚动，窄表格仍铺满 */
+      table: function (header, body) {
+        return '<div class="table-wrap"><table>' + header + body + '</table></div>';
       }
     }
   });
@@ -2386,6 +2400,19 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   postContent.addEventListener('scroll', function () {
     updateProgress(); updateChapterBlocks();
   }, { passive: true });
+
+  /* 文内锚点（脚注引用/回链、手写 #锚点）：只滚动，不动 location.hash，否则会触发路由关闭文章 */
+  postContent.addEventListener('click', function (e) {
+    const a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a || !postContent.contains(a)) return;
+    const id = a.getAttribute('href').slice(1);
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target || !postContent.contains(target)) return;
+    e.preventDefault();
+    const delta = target.getBoundingClientRect().top - postContent.getBoundingClientRect().top;
+    postContent.scrollTop += delta - 20;
+  });
 
   postBlur.addEventListener('click', function () {
     if (openPanel) { closeAllPanels(); return; }
