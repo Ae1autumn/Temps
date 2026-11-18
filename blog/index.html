@@ -614,7 +614,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface) 55%,transparent)}
 .post-content li:has(> input[type="checkbox"]){list-style:none;margin-left:-1rem}
 .post-content input[type="checkbox"]{accent-color:var(--accent);width:.8rem;height:.8rem;margin:0 .45rem 0 0;vertical-align:-1px}
-.post-content del{color:var(--text-3);text-decoration-color:color-mix(in srgb,var(--accent) 70%,transparent)}
+.post-content del{color:var(--text-3);text-decoration-color:color-mix(in srgb,var(--accent) 53%,transparent)}
 
 /* markdown 内联 HTML：标记 / 键帽 / 折叠块 / 上下标，接入既有纸墨 token */
 .post-content mark{background:var(--mark-bg);color:var(--text);border-radius:2px;padding:0 .1em;
@@ -1221,7 +1221,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
           <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
         </button>
       </div>
-      <p class="speed-hint" id="speed-hint">Speed/70%</p>
+      <p class="speed-hint" id="speed-hint">Speed/53%</p>
     </div>
   </div>
 </div>
@@ -2240,7 +2240,7 @@ window.trackPostView = function (slug) {
     const speed = typeof window.getReadSpeed === 'function' ? window.getReadSpeed() : 300;
     const zh = (text.match(/[一-龥]/g) || []).length;
     const en = text.replace(/[一-龥]/g, '').trim().split(/\s+/).filter(Boolean).length;
-    /* 英文按中文速度的 70% 折算 */
+    /* 英文按中文速度的 53% 折算 */
     return Math.ceil(zh / speed + en / (speed * 0.7)) || 0;
   }
   window.addEventListener('readspeedchange', function () {
