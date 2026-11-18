@@ -493,7 +493,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 }
 #post-page.is-fullscreen .fs-float{display:flex}
 .fs-chap{
-  left:12px;max-width:calc(100vw - 150px);overflow:hidden;cursor:pointer;
+  /* 最宽时两侧各留 12px，并与已用时间隔开 12px（时间条约 60px） */
+  left:12px;max-width:calc(100vw - 96px);overflow:hidden;cursor:pointer;
   font-family:var(--font-mono);font-size:.72rem;letter-spacing:.02em;color:var(--text-2);
   transition:border-color .18s;
 }
@@ -508,12 +509,28 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .fs-chap > *{position:relative}
 /* 不用容器 gap：折叠元素也会占 gap，导致右侧多余空隙 */
 .fs-chap-block{
-  display:flex;align-items:center;white-space:nowrap;min-width:0;overflow:hidden;
+  display:flex;align-items:center;white-space:nowrap;min-width:0;max-width:100%;
+  flex:1 1 0;
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
   transition:max-width .35s var(--ease-out),opacity .25s,margin .35s var(--ease-out);
 }
+.fs-chap-block::-webkit-scrollbar{display:none}
 .fs-chap-block:not(.collapsed){margin-left:.45rem}
 .fs-chap-hint.collapsed + .fs-chap-block:not(.collapsed){margin-left:0}
-.fs-chap-block .chap-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs-chap-block .chap-text{white-space:nowrap}
+/* 截断边缘渐隐：与正常模式一致（由 JS 按可滚动余量切换） */
+.fs-chap-block.fade-l{
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 16px);
+  mask-image:linear-gradient(to right,transparent,#000 16px);
+}
+.fs-chap-block.fade-r{
+  -webkit-mask-image:linear-gradient(to left,transparent,#000 16px);
+  mask-image:linear-gradient(to left,transparent,#000 16px);
+}
+.fs-chap-block.fade-l.fade-r{
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 16px,#000 calc(100% - 16px),transparent);
+  mask-image:linear-gradient(to right,transparent,#000 16px,#000 calc(100% - 16px),transparent);
+}
 .fs-chap-block.collapsed{max-width:0!important;margin-left:0!important;opacity:0;pointer-events:none}
 .fs-chap-sep{color:var(--text-3);flex-shrink:0;overflow:hidden;max-width:2.2em;padding:0 .5em;white-space:nowrap;
   transition:max-width .35s var(--ease-out),opacity .25s,padding .35s var(--ease-out)}
@@ -521,7 +538,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .fs-chap-hint{color:var(--text-3);letter-spacing:.04em;transition:opacity .25s}
 .fs-chap-hint.collapsed{opacity:0;max-width:0;overflow:hidden}
 .fs-timer{
-  right:12px;flex-shrink:0;
+  right:12px;flex-shrink:0;gap:.32rem;
   font-family:var(--font-mono);font-size:.72rem;letter-spacing:.04em;color:var(--text-3);
 }
 .fs-timer svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
@@ -1683,7 +1700,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     postPage.classList.toggle('is-fullscreen', on);
     btnFullscreen.classList.toggle('is-active', on);
     btnFullscreen.setAttribute('aria-pressed', on ? 'true' : 'false');
-    if (on) updateChapterBlocks();       // 同步悬浮章节指示器
+    if (on) {
+      updateChapterBlocks();             // 同步悬浮章节指示器
+      requestAnimationFrame(function () { updateFade(fsChap1); updateFade(fsChap2); });
+    }
     if (openPanel) syncPanelPositions(); // 全屏下面板需重新定位
   }
 
@@ -1952,6 +1972,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   [chap1, chap2].forEach(function (el) {
     el.addEventListener('scroll', function () { updateFade(el); }, { passive: true });
   });
+  [fsChap1, fsChap2].forEach(function (el) {
+    el.addEventListener('scroll', function () { updateFade(el); }, { passive: true });
+  });
 
   /* 章节切换：文本变化时自下而上滚入 */
   function rollText(block, t) {
@@ -1984,9 +2007,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     fsChapHint.classList.toggle('collapsed', has);
     fsChap1.classList.toggle('collapsed', !has);
     rollText(fsChap1, c.parent);
+    fsChap1.scrollLeft = 0;
     fsChapSep.classList.toggle('collapsed', !c.child);
     fsChap2.classList.toggle('collapsed', !c.child);
     rollText(fsChap2, c.child);
+    fsChap2.scrollLeft = 0;
+    fsChap1.classList.remove('fade-l', 'fade-r');
+    fsChap2.classList.remove('fade-l', 'fade-r');
+    setTimeout(function () { updateFade(fsChap1); updateFade(fsChap2); }, 380);
     syncTocActive();
   }
   function resetChapterBlocks() {
@@ -2002,6 +2030,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     fsChap1.classList.add('collapsed');
     fsChapSep.classList.add('collapsed');
     fsChap2.classList.add('collapsed');
+    fsChap1.classList.remove('fade-l', 'fade-r');
+    fsChap2.classList.remove('fade-l', 'fade-r');
   }
 
   /* ── 目录面板 ── */
