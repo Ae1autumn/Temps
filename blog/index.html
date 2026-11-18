@@ -712,7 +712,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 /* 面板通用内件 */
 .panel-head{
   display:flex;align-items:center;justify-content:space-between;
-  padding:.85rem 1rem .7rem;
+  padding:.5rem 1rem .4rem;
   border-bottom:var(--hairline) solid var(--border);flex-shrink:0;
 }
 .panel-title{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--text-3)}
@@ -742,13 +742,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .toc-empty{padding:2rem 1rem;text-align:center;font-size:.8rem;color:var(--text-3)}
 
 /* 搜索面板 */
-.search-field{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;border-bottom:var(--hairline) solid var(--border);flex-shrink:0}
+.search-field{display:flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-bottom:var(--hairline) solid var(--border);flex-shrink:0}
 .search-field svg{width:14px;height:14px;stroke:var(--text-3);fill:none;stroke-width:1.5;stroke-linecap:round;flex-shrink:0}
 .search-input{flex:1;min-width:0;border:none;background:none;outline:none;font-family:var(--font-body);font-size:.88rem;color:var(--text)}
 .search-input::placeholder{color:var(--text-3)}
 .search-meta{
   display:flex;align-items:center;justify-content:space-between;
-  padding:.55rem 1rem;border-bottom:var(--hairline) solid var(--border);flex-shrink:0;
+  padding:.4rem 1rem;border-bottom:var(--hairline) solid var(--border);flex-shrink:0;
 }
 .search-count{font-family:var(--font-mono);font-size:.7rem;color:var(--text-3);letter-spacing:.05em;min-height:1em}
 .search-nav{display:flex;gap:.15rem}
@@ -1898,7 +1898,7 @@ window.trackPostView = function (slug) {
     panelChapters.style.left = Math.max(r.left + GAP, 8) + 'px';
     panelChapters.style.width = w + 'px';
     panelChapters.style.maxHeight = (r.height * 0.55) + 'px';
-    panelComments.style.top = tr.bottom + 'px';
+    panelComments.style.top = (tr.bottom + GAP) + 'px';
     panelComments.style.left = (r.left + GAP) + 'px';
     panelComments.style.right = (window.innerWidth - r.right + GAP) + 'px';
     panelSearch.style.top = (r.top + GAP) + 'px';
