@@ -33,7 +33,7 @@
   --title:         oklch(0.20 0.02 60);
   --accent:        var(--p-cinnabar);
   --accent-hover:  var(--p-cinnabar-hi);
-  --mark-bg:       var(--p-mark);
+  --mark-bg:       color-mix(in srgb, var(--accent) 18%, transparent);
   --shadow-drop:   rgba(46,35,24,.07);
   --scrim:         rgba(30,22,14,.28);
 
@@ -61,7 +61,7 @@
   --title:         oklch(0.94 0.014 88);
   --accent:        oklch(0.60 0.16 30);
   --accent-hover:  oklch(0.66 0.17 30);
-  --mark-bg:       oklch(0.55 0.10 80);
+  --mark-bg:       color-mix(in srgb, var(--accent) 26%, transparent);
   --shadow-drop:   rgba(0,0,0,.35);
   --scrim:         rgba(0,0,0,.5);
 }
@@ -249,7 +249,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   border-bottom:var(--hairline) solid var(--border);
 }
 .feed-head h2{font-family:var(--font-mono);font-size:.72rem;font-weight:400;letter-spacing:.28em;text-transform:uppercase;color:var(--text-3)}
-.feed-count{font-family:var(--font-mono);font-size:.72rem;color:var(--text-3)}
+.feed-meta{display:flex;align-items:baseline;gap:.5rem}
+.feed-count,.feed-total,.feed-sep{font-family:var(--font-mono);font-size:.72rem;color:var(--text-3)}
+.feed-sep.is-empty,.feed-total.is-empty{display:none}
 .cards{display:flex;flex-direction:column;gap:1.1rem}
 
 .card{
@@ -296,6 +298,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .card-date{font-family:var(--font-mono);font-size:.74rem;color:var(--text-3);letter-spacing:.04em}
 .card-stats{display:flex;align-items:center;gap:1rem}
 .card-stat{display:flex;align-items:center;gap:.32rem;font-family:var(--font-mono);font-size:.74rem;color:var(--text-3)}
+.card-stat.is-empty{display:none}
 .card-stat svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 
 /* ═══ hamburger ═══ */
@@ -609,6 +612,29 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content input[type="checkbox"]{accent-color:var(--accent);width:.8rem;height:.8rem;margin:0 .45rem 0 0;vertical-align:-1px}
 .post-content del{color:var(--text-3);text-decoration-color:color-mix(in srgb,var(--accent) 70%,transparent)}
 
+/* markdown 内联 HTML：标记 / 键帽 / 折叠块 / 上下标，接入既有纸墨 token */
+.post-content mark{background:var(--mark-bg);color:var(--text);border-radius:2px;padding:0 .1em;
+  -webkit-box-decoration-break:clone;box-decoration-break:clone}
+.post-content kbd{font-family:var(--font-mono);font-size:.78em;line-height:1.4;color:var(--text);
+  background:var(--surface);border:var(--hairline) solid var(--border);border-radius:5px;
+  padding:.08em .38em;margin:0 .06em;white-space:nowrap;box-shadow:0 1px 0 var(--border)}
+.post-content details{margin:0 0 1.2rem;padding:.7rem .9rem;border:var(--hairline) solid var(--border);
+  border-radius:var(--radius);background:color-mix(in srgb,var(--surface) 60%,transparent)}
+.post-content details[open]{padding-bottom:.85rem}
+.post-content summary{cursor:pointer;color:var(--text);font-size:.92rem;line-height:1.6;transition:color .18s}
+.post-content summary:hover{color:var(--accent)}
+.post-content summary::marker{color:var(--accent)}
+.post-content details > *:not(summary){margin-top:.6rem}
+.post-content details p{margin-bottom:.7rem}
+.post-content details > *:not(summary):last-child{margin-bottom:0}
+.post-content sub,.post-content sup:not(:has(> a[data-footnote-ref])){font-size:.72em;line-height:0;
+  position:relative;vertical-align:baseline}
+.post-content sub{bottom:-.28em}
+.post-content sup:not(:has(> a[data-footnote-ref])){top:-.42em}
+.post-content ins{text-decoration-color:var(--accent);text-decoration-thickness:1px}
+.post-content u{text-decoration-color:color-mix(in srgb,var(--accent) 65%,transparent);text-underline-offset:2px}
+.post-content abbr[title]{text-decoration:underline dotted var(--text-3);text-underline-offset:2px;cursor:help}
+
 /* 长文本防溢出：超长单词、URL、行内代码允许断行（代码块仍横向滚动） */
 .post-content p,.post-content li,.post-content blockquote{overflow-wrap:break-word}
 .post-content td,.post-content th{overflow-wrap:break-word}
@@ -862,83 +888,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   <main class="feed">
     <div class="feed-head">
       <h2>全部文章</h2>
-      <span class="feed-count" id="feed-count"></span>
+      <span class="feed-meta">
+        <span class="feed-count" id="feed-count"></span>
+        <span class="feed-sep is-empty" id="feed-sep" aria-hidden="true">-</span>
+        <span class="feed-total is-empty" id="feed-total"></span>
+      </span>
     </div>
-    <div class="cards" id="cards">
-
-      <article class="card" tabindex="0" role="link" data-slug="sea-before-disappear" data-src="./test-t.md">
-        <div class="card-corner" aria-hidden="true"></div>
-        <h2 class="card-title">在消逝之前，我还想再看一眼那片海</h2>
-        <div class="card-tags">
-          <span class="card-tag">随笔</span><span class="card-tag">旅行</span><span class="card-tag">记忆</span>
-        </div>
-        <p class="card-excerpt">有些地方你只去过一次，却在心里住了很久。不是因为它有多美，而是因为那一天的光线恰好是那种让人难受的温柔。</p>
-        <div class="card-meta">
-          <span class="card-date">2025-11-04</span>
-          <div class="card-stats">
-            <span class="card-stat" aria-label="阅读量">
-              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              1.2k
-            </span>
-          </div>
-        </div>
-      </article>
-
-      <article class="card" tabindex="0" role="link" data-slug="about-writing" data-src="https://raw.githubusercontent.com/Ae2autumn/ae2autumn.github.io/refs/heads/main/O-MD/inv.md">
-        <div class="card-corner" aria-hidden="true"></div>
-        <h2 class="card-title">关于写作这件事，我一直想说清楚</h2>
-        <div class="card-tags">
-          <span class="card-tag">写作</span><span class="card-tag">思考</span>
-        </div>
-        <p class="card-excerpt">写作不是表达，而是一种试图抵达的努力。你永远不知道你真正想说的是什么，直到你把它写出来，然后发现还是不对。</p>
-        <div class="card-meta">
-          <span class="card-date">2025-10-17</span>
-          <div class="card-stats">
-            <span class="card-stat" aria-label="阅读量">
-              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              834
-            </span>
-          </div>
-        </div>
-      </article>
-
-      <article class="card" tabindex="0" role="link" data-slug="css-theme-system" data-src="https://shz.al/iksi">
-        <div class="card-corner" aria-hidden="true"></div>
-        <h2 class="card-title">用 CSS 变量构建一个真正可维护的主题系统</h2>
-        <div class="card-tags">
-          <span class="card-tag">CSS</span><span class="card-tag">前端</span><span class="card-tag">工程化</span>
-        </div>
-        <p class="card-excerpt">大多数人用 CSS 变量只是把颜色存起来。但它能做的事远不止于此——层级、间距、动画时长，一切都可以被纳入这套语言里统一管理。</p>
-        <div class="card-meta">
-          <span class="card-date">2025-09-02</span>
-          <div class="card-stats">
-            <span class="card-stat" aria-label="阅读量">
-              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              2.4k
-            </span>
-          </div>
-        </div>
-      </article>
-
-      <article class="card" tabindex="0" role="link" data-slug="ai-loneliness" data-src="./posts/ai-loneliness.md">
-        <div class="card-corner" aria-hidden="true"></div>
-        <h2 class="card-title">夜里三点，我试着和一个 AI 聊了聊孤独</h2>
-        <div class="card-tags">
-          <span class="card-tag">AI</span><span class="card-tag">孤独</span><span class="card-tag">随笔</span>
-        </div>
-        <p class="card-excerpt">它回答得很好，好到我有一瞬间忘记了它不是人。后来我想，也许正是这种忘记本身，才是最值得被记录的事情。</p>
-        <div class="card-meta">
-          <span class="card-date">2025-08-11</span>
-          <div class="card-stats">
-            <span class="card-stat" aria-label="阅读量">
-              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              5.1k
-            </span>
-          </div>
-        </div>
-      </article>
-
-    </div>
+    <div class="cards" id="cards"></div>
   </main>
 
 </div>
@@ -1160,6 +1116,208 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   </div>
 </div>
 
+<script>
+/* ═══════════════ 文章数据 ═══════════════
+   站点唯一数据源：首页卡片、全站搜索、hash 路由都读这一份。
+   新增文章只需在数组里加一项，卡片和搜索会自动更新。 */
+window.POSTS = [
+  {
+    slug: 'sea-before-disappear',
+    title: '在消逝之前，我还想再看一眼那片海',
+    date: '2025-11-04',
+    tags: ['随笔', '旅行', '记忆'],
+    excerpt: '有些地方你只去过一次，却在心里住了很久。不是因为它有多美，而是因为那一天的光线恰好是那种让人难受的温柔。',
+    src: './test-t.md'
+  },
+  {
+    slug: 'about-writing',
+    title: '关于写作这件事，我一直想说清楚',
+    date: '2025-10-17',
+    tags: ['写作', '思考'],
+    excerpt: '写作不是表达，而是一种试图抵达的努力。你永远不知道你真正想说的是什么，直到你把它写出来，然后发现还是不对。',
+    src: 'https://raw.githubusercontent.com/Ae2autumn/ae2autumn.github.io/refs/heads/main/O-MD/inv.md'
+  },
+  {
+    slug: 'css-theme-system',
+    title: '用 CSS 变量构建一个真正可维护的主题系统',
+    date: '2025-09-02',
+    tags: ['CSS', '前端', '工程化'],
+    excerpt: '大多数人用 CSS 变量只是把颜色存起来。但它能做的事远不止于此——层级、间距、动画时长，一切都可以被纳入这套语言里统一管理。',
+    src: 'https://shz.al/iksi'
+  },
+  {
+    slug: 'ai-loneliness',
+    title: '夜里三点，我试着和一个 AI 聊了聊孤独',
+    date: '2025-08-11',
+    tags: ['AI', '孤独', '随笔'],
+    excerpt: '它回答得很好，好到我有一瞬间忘记了它不是人。后来我想，也许正是这种忘记本身，才是最值得被记录的事情。',
+    src: './posts/ai-loneliness.md'
+  }
+];
+
+/* ── 阅读量（动态指标，不写进 POSTS）──
+   GoatCounter：https://www.goatcounter.com
+   1. 注册站点，拿到 xxx.goatcounter.com 里的 code
+   2. Settings → 开启 "Allow adding visitor counts on your website"
+   3. 把 code 填到下面；留空则阅读量自动隐藏，其他功能不受影响
+   计数路径统一为 /post/<slug>，与 openPost 里发送的虚拟 pageview 保持一致 */
+window.GOATCOUNTER = {
+  code: '',
+  pathPrefix: '/post/',
+  cacheKey: 'ae_views_v1',
+  cacheTTL: 30 * 60 * 1000
+};
+
+/* 统计脚本是异步加载的：未就绪时先入队，加载完成后补发，
+   避免直接带 hash 打开文章时漏记 */
+window.__gcQueue = [];
+window.trackPostView = function (slug) {
+  var cfg = window.GOATCOUNTER;
+  if (!cfg || !cfg.code) return;
+  var path = cfg.pathPrefix + slug;
+  if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+    window.goatcounter.count({ path: path });
+  } else {
+    window.__gcQueue.push(path);
+  }
+};
+
+/* 首页卡片：从 POSTS 渲染，避免 DOM 与数据两处维护 */
+(function renderFeed() {
+  var EYE = '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  var html = window.POSTS.map(function (p) {
+    var tags = (p.tags || []).map(function (t) {
+      return '<span class="card-tag">' + esc(t) + '</span>';
+    }).join('');
+    return '<article class="card" tabindex="0" role="link" data-slug="' + esc(p.slug) + '" data-src="' + esc(p.src) + '">' +
+      '<div class="card-corner" aria-hidden="true"></div>' +
+      '<h2 class="card-title">' + esc(p.title) + '</h2>' +
+      '<div class="card-tags">' + tags + '</div>' +
+      '<p class="card-excerpt">' + esc(p.excerpt) + '</p>' +
+      '<div class="card-meta">' +
+        '<span class="card-date">' + esc(p.date) + '</span>' +
+        '<div class="card-stats">' +
+          '<span class="card-stat card-views is-empty" data-views="' + esc(p.slug) + '" aria-label="阅读量">' +
+            EYE + '<span class="views-num"></span>' +
+          '</span>' +
+        '</div>' +
+      '</div>' +
+    '</article>';
+  }).join('');
+
+  var cardsEl = document.getElementById('cards');
+  if (cardsEl) cardsEl.innerHTML = html;
+  var feedCnt = document.getElementById('feed-count');
+  if (feedCnt) feedCnt.textContent = window.POSTS.length + ' 篇';
+})();
+
+/* 阅读量异步填充：失败时保持隐藏，不显示假数据 */
+(function hydrateViews() {
+  var cfg = window.GOATCOUNTER;
+  var els = document.querySelectorAll('[data-views]');
+  if (!cfg || !cfg.code || !els.length) return;
+
+  var base = 'https://' + cfg.code + '.goatcounter.com/counter/';
+  var now = Date.now();
+  var cache = null;
+  try { cache = JSON.parse(sessionStorage.getItem(cfg.cacheKey) || 'null'); } catch (e) {}
+  var fresh = cache && cache.d && (now - cache.t) < cfg.cacheTTL ? cache.d : null;
+  var data = fresh ? Object.assign({}, fresh) : {};
+  var total = fresh && cache.total != null ? String(cache.total) : null;
+
+  /* 总访问量：跟在「n 篇」后面，取不到时连字符和数字一起隐藏 */
+  function paintTotal(text) {
+    var totalEl = document.getElementById('feed-total');
+    var sepEl = document.getElementById('feed-sep');
+    if (!totalEl || !sepEl) return;
+    totalEl.textContent = text + ' 阅览量';
+    totalEl.classList.remove('is-empty');
+    sepEl.classList.remove('is-empty');
+  }
+  if (total != null) paintTotal(total);
+
+  function paint(slug, text) {
+    var nodes = document.querySelectorAll('[data-views]');
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].getAttribute('data-views') !== slug) continue;
+      var num = nodes[i].querySelector('.views-num');
+      if (num) num.textContent = text;
+      nodes[i].classList.remove('is-empty');
+    }
+  }
+
+  var pending = [];
+  var seen = {};
+  for (var i = 0; i < els.length; i++) {
+    var slug = els[i].getAttribute('data-views');
+    if (!slug || seen[slug]) continue;
+    seen[slug] = true;
+    if (data[slug] != null) { paint(slug, data[slug]); continue; }
+    pending.push(fetchCount(slug));
+  }
+
+  function fetchCount(slug) {
+    var url = base + encodeURIComponent(cfg.pathPrefix + slug) + '.json';
+    return fetch(url, { credentials: 'omit' }).then(function (r) {
+      if (r.status === 404) return '0';   // 该路径还没有记录，视为 0
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json().then(function (d) { return d && d.count != null ? String(d.count) : null; });
+    }).then(function (count) {
+      if (count == null) return;
+      data[slug] = count;
+      paint(slug, count);
+    }).catch(function () { /* 网络或配置问题：保持隐藏 */ });
+  }
+
+  /* TOTAL 是 GoatCounter 的特殊路径，返回整站总访问量 */
+  function fetchTotal() {
+    return fetch(base + 'TOTAL.json', { credentials: 'omit' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      if (!d || d.count == null) return;
+      total = String(d.count);
+      paintTotal(total);
+    }).catch(function () { /* 取不到就不占位 */ });
+  }
+
+  var totalPending = total != null ? null : fetchTotal();
+  var jobs = totalPending ? pending.concat([totalPending]) : pending;
+
+  Promise.all(jobs).then(function () {
+    try {
+      sessionStorage.setItem(cfg.cacheKey, JSON.stringify({ t: Date.now(), d: data, total: total }));
+    } catch (e) {}
+  });
+})();
+
+/* 只在配置了 code 时加载统计脚本；否则整站不发起任何第三方请求 */
+(function loadGoatCounter() {
+  var cfg = window.GOATCOUNTER;
+  if (!cfg || !cfg.code) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://gc.zgo.at/count.js';
+  s.setAttribute('data-goatcounter', 'https://' + cfg.code + '.goatcounter.com/count');
+  s.onload = function () {
+    var q = window.__gcQueue || [];
+    while (q.length) {
+      var path = q.shift();
+      if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+        window.goatcounter.count({ path: path });
+      }
+    }
+  };
+  document.head.appendChild(s);
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.12.0/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked-highlight@2.2.4/lib/index.umd.js"></script>
@@ -1184,6 +1342,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     slugCounts[s] = n + 1;
     return n ? s + '-' + n : s;
   }
+  /* 建索引阶段复用：给裸 HTML 标题回填锚点（见 buildHeadings） */
+  window.slugifyHeading = slugify;
+  window.resetHeadingSlugs = function () { slugCounts = {}; };
   marked.use({
     hooks: {
       preprocess: function (src) { slugCounts = {}; return src; }
@@ -1227,6 +1388,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   /* 数学公式：解析失败时保留源码文本，不让整篇文章崩掉 */
   if (window.markedKatex && window.katex) {
     marked.use(markedKatex({ throwOnError: false, nonStandard: false }));
+    /* 扩展默认只在「行首」或「$ 前是空格」时才尝试行内公式，
+       中文里 `公式：$x$`、`。$x$` 这类紧贴标点的写法会被整段跳过。
+       这里只补一个定位提示让 lexer 在任意 $ 处停一下，收尾仍走严格规则，
+       不会误吃 $5、$10 这类货币写法（要彻底不设限就改 nonStandard: true） */
+    marked.use({ extensions: [{
+      name: 'inlineMathHint',
+      level: 'inline',
+      start: function (src) { var i = src.indexOf('$'); return i > -1 ? i : undefined; },
+      tokenizer: function () { return undefined; }
+    }] });
   }
 })();
 </script>
@@ -1331,21 +1502,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   const input     = document.getElementById('sm-input');
   const tabsWrap  = document.getElementById('sm-tabs-wrap');
   const resultsEl = document.getElementById('sm-results');
-  const feedCnt   = document.getElementById('feed-count');
 
-  const CARDS = Array.prototype.map.call(
-    document.querySelectorAll('#cards .card[data-slug]'),
-    function (card) {
-      return {
-        slug: card.dataset.slug,
-        title: (card.querySelector('.card-title') || {}).textContent.trim() || '',
-        date: (card.querySelector('.card-date') || {}).textContent.trim() || '',
-        tags: Array.prototype.map.call(card.querySelectorAll('.card-tag'), function (t) { return t.textContent.trim(); }),
-        excerpt: (card.querySelector('.card-excerpt') || {}).textContent.trim() || '',
-      };
-    }
-  );
-  feedCnt.textContent = CARDS.length + ' 篇';
+  const POSTS = window.POSTS;
 
   const MODES = ['title', 'date', 'tag'];
   const tabBtns = Array.prototype.slice.call(tabsWrap.querySelectorAll('.sm-tab-btn'));
@@ -1536,7 +1694,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   function runSearch(q) {
     const ql = q.toLowerCase();
     const mode = MODES[modeIdx];
-    const list = CARDS.filter(function (c) {
+    const list = POSTS.filter(function (c) {
       if (mode === 'title') return c.title.toLowerCase().indexOf(ql) !== -1;
       if (mode === 'date')  return c.date.toLowerCase().indexOf(ql) !== -1;
       return c.tags.some(function (t) { return t.toLowerCase().indexOf(ql) !== -1; });
@@ -1915,6 +2073,18 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   function buildHeadings() {
     const all = Array.prototype.slice.call(postContent.querySelectorAll('h1,h2,h3,h4'))
       .filter(function (el) { return !el.classList.contains('sr-only'); }); // 排除脚注区块的无障碍标签
+    /* 统一锚点：裸 <h1>~<h4> 走 html token，不经 renderer.heading，没有 id。
+       清空后按文档顺序重算，裸标题才吃得到正文的 #锚点，且首个同名标题拿无后缀 id */
+    if (typeof window.slugifyHeading === 'function' && window.resetHeadingSlugs) {
+      all.forEach(function (el) { el.removeAttribute('id'); });
+      window.resetHeadingSlugs();
+      all.forEach(function (el) {
+        var base = window.slugifyHeading(el.textContent || '');
+        var id = base, n = 1;
+        while (document.getElementById(id)) id = base + '-' + (n++);
+        el.id = id;
+      });
+    }
     all.shift(); // 第一个标题（通常是文章主标题）不参与索引
     headings = all.map(function (el) {
       return { el: el, level: parseInt(el.tagName[1], 10), text: el.textContent.trim() };
@@ -2311,6 +2481,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   async function openPost(slug, meta) {
     const token = ++postLoadToken;
 
+    /* 阅读量：首次打开某篇时发送虚拟 pageview；重载/重试不重复计数 */
+    if (currentSlug !== slug && window.trackPostView) window.trackPostView(slug);
+
     const wasLoading = postHeaderRow.classList.contains('is-loading');
     if (currentSlug && currentSlug !== slug && !loadFailed && !wasLoading) {
       if (isFullyRead()) clearState(currentSlug); else saveState(currentSlug);
@@ -2482,11 +2655,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   postContent.addEventListener('click', function (e) {
     const a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
     if (!a || !postContent.contains(a)) return;
-    const id = a.getAttribute('href').slice(1);
-    if (!id) return;
+    const raw = a.getAttribute('href').slice(1);
+    if (!raw) return;
+    if (raw.charAt(0) === '/') return; // #/post/slug 留给 hash 路由
+    /* marked 会把非 ASCII 锚点做百分号编码（#%E4%B8%89-...），先解码才对得上 id */
+    let id = raw;
+    try { id = decodeURIComponent(raw); } catch (err) {}
     const target = document.getElementById(id);
-    if (!target || !postContent.contains(target)) return;
+    /* 无条件拦下默认跳转：目标不存在时若放行，浏览器会改 hash，路由误判为关闭文章 */
     e.preventDefault();
+    if (!target || !postContent.contains(target)) return;
     const delta = target.getBoundingClientRect().top - postContent.getBoundingClientRect().top;
     postContent.scrollTop += delta - 20;
   });
@@ -2563,16 +2741,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   });
 
   /* ── hash 路由 ── */
-  const POSTS = Array.prototype.map.call(
-    document.querySelectorAll('#cards .card[data-slug]'),
-    function (card) {
-      return {
-        slug: card.dataset.slug,
-        title: (card.querySelector('.card-title') || {}).textContent || '',
-        src: card.dataset.src || '',
-      };
-    }
-  );
+  const POSTS = window.POSTS;
   function findMeta(slug) { return POSTS.find(function (d) { return d.slug === slug; }) || null; }
 
   function handleHash() {
@@ -2587,19 +2756,24 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   window.addEventListener('hashchange', handleHash);
   handleHash();
 
-  document.querySelectorAll('.card[data-slug]').forEach(function (card) {
-    function openCard() {
-      const target = '#/post/' + card.dataset.slug;
-      /* hash 未变化时不会触发 hashchange（例如关闭后 hash 未被成功清除），
-         此时直接走路由，保证同一卡片可以反复点击 */
-      if (window.location.hash === target) handleHash();
-      else window.location.hash = target;
-    }
-    card.addEventListener('click', openCard);
-    card.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      e.preventDefault(); openCard();
-    });
+  /* 卡片点击：事件委托，列表由 POSTS 动态渲染 */
+  function openCard(slug) {
+    const target = '#/post/' + slug;
+    /* hash 未变化时不会触发 hashchange（例如关闭后 hash 未被成功清除），
+       此时直接走路由，保证同一卡片可以反复点击 */
+    if (window.location.hash === target) handleHash();
+    else window.location.hash = target;
+  }
+  document.getElementById('cards').addEventListener('click', function (e) {
+    const card = e.target.closest('.card[data-slug]');
+    if (card) openCard(card.dataset.slug);
+  });
+  document.getElementById('cards').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('.card[data-slug]');
+    if (!card) return;
+    e.preventDefault();
+    openCard(card.dataset.slug);
   });
 
   /* ── resize ── */
