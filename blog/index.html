@@ -4,17 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ae1autumn</title>
-<meta name="description" content="Ae1autumn — 纸上墨迹，一些文字。">
+<meta name="description" content="Ae1autumn">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='4' fill='none' stroke='%239b3d32' stroke-width='1.5'/%3E%3Cpath d='M8 22L16 10L24 22M11 18H21' fill='none' stroke='%239b3d32' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
 <style>
-/* ════════════════════════════════════════════
-   TOKENS — 纸 / 墨 / 朱砂
-   primitive → semantic → component
-════════════════════════════════════════════ */
 :root{
   /* primitives (OKLCH) */
   --p-paper:      oklch(0.955 0.014 92);
@@ -71,7 +67,8 @@
 }
 
 /* ═══ base ═══ */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;scrollbar-width:none!important;-ms-overflow-style:none}
+*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
 html{font-size:16px;scroll-behavior:smooth}
 body{
   background:var(--bg);color:var(--text);
@@ -536,10 +533,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content{
   flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;
   padding:2.4rem var(--pad-x) 6rem;
-  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
 }
-.post-content::-webkit-scrollbar{width:5px}
-.post-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 .post-content-inner{max-width:65ch;margin:0 auto}
 
 /* markdown 排版 */
@@ -562,8 +556,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content a{color:var(--accent);text-decoration:none;border-bottom:var(--hairline) solid var(--accent)}
 .post-content hr{border:none;border-top:var(--hairline) solid var(--border);margin:2.4rem auto;width:42%}
 .post-content img{max-width:100%;border-radius:var(--radius);border:var(--hairline) solid var(--border);margin:1.2rem 0}
-.post-content ul,.post-content ol{padding-left:1.4rem;margin-bottom:1.1rem;color:var(--text-2);font-size:.95rem;line-height:1.9}
-.post-content li{margin-bottom:.3rem}
+.post-content ul,.post-content ol{padding-left:1rem;margin-bottom:1.1rem;color:var(--text-2);font-size:.95rem;line-height:1.9}
+/* li 可横向滚动后，outside 标记会被溢出裁剪，改为 inside 保留圆点/序号 */
+.post-content li{margin-bottom:.3rem;overflow-x:auto;list-style-position:inside}
+/* 宽松列表里段落是块级 <p>，inside 标记会被挤到上一行：首个段落内联化 */
+.post-content li > p{display:inline;margin:0}
+.post-content li > p + p{display:block;margin:.5rem 0 0}
 
 /* markdown 补充：表格 / 任务列表 / 删除线 / 深级标题 */
 .post-content h5,.post-content h6{font-family:var(--font-display);font-weight:500;color:var(--text-2);margin:2rem 0 .8rem;line-height:1.4;scroll-margin-top:1rem}
@@ -572,10 +570,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content .table-wrap{
   overflow-x:auto;overflow-y:hidden;margin:0 0 1.2rem;
   border:var(--hairline) solid var(--border);border-radius:var(--radius);
-  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
 }
-.post-content .table-wrap::-webkit-scrollbar{height:4px}
-.post-content .table-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 /* 可滚动余量的边缘渐隐（与 .sr-scroll 同一套交互语言） */
 .post-content .table-wrap.fade-l{-webkit-mask-image:linear-gradient(to right,transparent,#000 14px);mask-image:linear-gradient(to right,transparent,#000 14px)}
 .post-content .table-wrap.fade-r{-webkit-mask-image:linear-gradient(to left,transparent,#000 14px);mask-image:linear-gradient(to left,transparent,#000 14px)}
@@ -593,7 +588,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content [align="center"]{text-align:center}
 .post-content [align="right"]{text-align:right}
 .post-content tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface) 55%,transparent)}
-.post-content li:has(> input[type="checkbox"]){list-style:none;margin-left:-1.4rem}
+.post-content li:has(> input[type="checkbox"]){list-style:none;margin-left:-1rem}
 .post-content input[type="checkbox"]{accent-color:var(--accent);width:.8rem;height:.8rem;margin:0 .45rem 0 0;vertical-align:-1px}
 .post-content del{color:var(--text-3);text-decoration-color:color-mix(in srgb,var(--accent) 70%,transparent)}
 
@@ -682,7 +677,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .panel-close{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-3);transition:color .18s,background-color .18s}
 .panel-close:hover{color:var(--text);background:var(--bg)}
 .panel-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.panel-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.panel-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 
 /* 章节面板 */
 .toc-list{padding:.3rem .55rem .6rem}
@@ -810,6 +805,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   .post-content{padding-top:1.6rem}
 }
 </style>
+<base target="_blank">
 </head>
 <body>
 
