@@ -745,6 +745,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .sr-scroll.fade-r{-webkit-mask-image:linear-gradient(to left,transparent,#000 14px);mask-image:linear-gradient(to left,transparent,#000 14px)}
 .sr-scroll.fade-l.fade-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(to right,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
 
+/* 纵向边缘渐隐（正文 / 目录 / 搜索结果共用）：有隐藏内容的一侧文字淡出 */
+.fade-t{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 16px);mask-image:linear-gradient(to bottom,transparent,#000 16px)}
+.fade-b{-webkit-mask-image:linear-gradient(to top,transparent,#000 16px);mask-image:linear-gradient(to top,transparent,#000 16px)}
+.fade-t.fade-b{-webkit-mask-image:linear-gradient(to bottom,transparent,#000 16px,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to bottom,transparent,#000 16px,#000 calc(100% - 16px),transparent)}
+
 /* 评论面板（占位） */
 .comments-placeholder{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;
@@ -1765,9 +1770,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     startHijack();
     if (name === 'chapters') {
       buildToc();
-      requestAnimationFrame(function () { syncTocActive(true); });
+      requestAnimationFrame(function () { syncTocActive(true); updateVFade(tocBody); });
     }
     if (name === 'search') { setTimeout(function () { searchInput.focus(); }, 200); }
+    requestAnimationFrame(refreshVFades);
   }
   function _doClose(name) {
     const el = PANEL_EL[name];
@@ -1936,6 +1942,21 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     el.classList.toggle('fade-l', over && el.scrollLeft > 1);
     el.classList.toggle('fade-r', over && el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
   }
+  /* 纵向版：正文 / 目录 / 搜索结果的上下边缘渐隐 */
+  const tocBody = panelChapters.querySelector('.panel-body');
+  const srBody  = panelSearch.querySelector('.panel-body');
+  function updateVFade(el) {
+    if (!el || el.clientHeight < 2) { if (el) el.classList.remove('fade-t', 'fade-b'); return; }
+    const over = el.scrollHeight > el.clientHeight + 1;
+    el.classList.toggle('fade-t', over && el.scrollTop > 1);
+    el.classList.toggle('fade-b', over && el.scrollTop < el.scrollHeight - el.clientHeight - 1);
+  }
+  function refreshVFades() {
+    updateVFade(postContent); updateVFade(tocBody); updateVFade(srBody);
+  }
+  [tocBody, srBody].forEach(function (el) {
+    if (el) el.addEventListener('scroll', function () { updateVFade(el); }, { passive: true });
+  });
   [chap1, chap2].forEach(function (el) {
     el.addEventListener('scroll', function () { updateFade(el); }, { passive: true });
   });
@@ -2069,6 +2090,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     srResults.innerHTML = '';
     searchCount.textContent = '';
     searchPrev.disabled = true; searchNext.disabled = true;
+    updateVFade(srBody); // 清空结果后同步渐隐
   }
 
   /* 截取命中词前后最近标点/空白/换行之间的片段 */
@@ -2157,6 +2179,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
         scroll.scrollLeft += delta - (scroll.clientWidth - b.getBoundingClientRect().width) / 2;
         updateFade(scroll);
       });
+      updateVFade(srBody); // 结果列表高度变化后刷新纵向渐隐
     });
   }
 
@@ -2358,6 +2381,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     buildHeadings();
     /* 表格边缘渐隐初始态（内容已插入，此时可测得真实滚动余量） */
     postContent.querySelectorAll('.table-wrap').forEach(updateFade);
+    refreshVFades();
     updateChapterBlocks();
     updateProgress();
 
@@ -2423,8 +2447,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   });
 
   postContent.addEventListener('scroll', function () {
-    updateProgress(); updateChapterBlocks();
+    updateProgress(); updateChapterBlocks(); updateVFade(postContent);
   }, { passive: true });
+
+  /* 图片懒加载完成后内容高度变化，重新计算渐隐（load 不冒泡，用 capture） */
+  postContent.addEventListener('load', function (e) {
+    if (e.target && e.target.tagName === 'IMG') updateVFade(postContent);
+  }, true);
 
   /* 文内锚点（脚注引用/回链、手写 #锚点）：只滚动，不动 location.hash，否则会触发路由关闭文章 */
   postContent.addEventListener('click', function (e) {
@@ -2554,11 +2583,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   window.addEventListener('resize', function () {
     syncBlurHeight();
     if (openPanel) syncPanelPositions();
+    refreshVFades();
   }, { passive: true });
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', function () {
       syncBlurHeight();
       if (openPanel) syncPanelPositions();
+      refreshVFades();
     }, { passive: true });
   }
 })();
