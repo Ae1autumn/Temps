@@ -721,13 +721,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .copy-cell:hover{color:var(--accent);background:color-mix(in srgb,var(--bg) 82%,var(--text-3))}
 .copy-cell svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .copy-cell .ic-t{font-family:var(--font-mono);font-size:8.5px;font-weight:700;stroke:none;fill:currentColor}
-.copy-toast{
-  display:none;align-items:center;justify-content:center;gap:.45rem;
-  padding:.95rem;font-size:.85rem;color:var(--accent);
+/* 复制成功：原位替换为绿框+深绿底+对勾 */
+.copy-main.is-copied,.copy-cell.is-copied{
+  border-color:color-mix(in srgb,#2fae72 62%,transparent)!important;
+  background:color-mix(in srgb,#2fae72 28%,var(--surface))!important;
+  color:color-mix(in srgb,#2fae72 62%,transparent)!important;
 }
-.copy-toast.is-visible{display:flex}
-.copy-toast svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
+.copy-main.is-disabled,.copy-cell.is-disabled{opacity:.35;pointer-events:none}
 @media (max-width:560px){
   .post-chapter-block{max-width:38vw}
   .post-content{padding-top:1.6rem}
@@ -1067,9 +1067,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
         </button>
       </div>
     </div>
-    <div class="copy-toast" id="copy-toast">
-      <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-    </div>
   </div>
 </div>
 
@@ -1078,41 +1075,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 /* ═══════════════ 背景滚动锁：支持菜单与文章页叠加 ═══════════════ */
 (function () {
   let locks = 0;
-  let scrollY = 0;
-  let saved = null;
   window.lockBackgroundScroll = function () {
     if (locks++ > 0) return;
-    const body = document.body;
-    scrollY = window.scrollY;
-    saved = {
-      position: body.style.position,
-      top: body.style.top,
-      left: body.style.left,
-      right: body.style.right,
-      width: body.style.width,
-      overflow: body.style.overflow,
-      rootOverflow: document.documentElement.style.overflow
-    };
-    body.style.position = 'fixed';
-    body.style.top = -scrollY + 'px';
-    body.style.left = '0';
-    body.style.right = '0';
-    body.style.width = '100%';
-    body.style.overflow = 'hidden';
+    /* 只锁定滚动，不移动页面：关闭文章时首页位置保持原样，不再被拉回 */
     document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
   };
   window.unlockBackgroundScroll = function () {
     if (!locks || --locks > 0) return;
-    const body = document.body;
-    body.style.position = saved.position;
-    body.style.top = saved.top;
-    body.style.left = saved.left;
-    body.style.right = saved.right;
-    body.style.width = saved.width;
-    body.style.overflow = saved.overflow;
-    document.documentElement.style.overflow = saved.rootOverflow;
-    window.scrollTo(0, scrollY);
-    saved = null;
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
   };
 })();
 
@@ -1539,7 +1511,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   const searchNext      = $('search-next');
   const copyModal       = $('copy-modal');
   const copyOptions     = $('copy-options');
-  const copyToast       = $('copy-toast');
   const eyeOpen         = $('post-eye-open');
   const eyeClosed       = $('post-eye-closed');
   const clockHand       = $('post-clock-hand');
@@ -1554,7 +1525,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   /* 状态 */
   let currentSlug = null, currentMeta = null;
   let rawMarkdown = '', loadFailed = false;
-  let returnFocusEl = null, postLoadToken = 0, currentAbort = null;
+  let postLoadToken = 0, currentAbort = null;
   let contentReady = false;
   let timerInterval = null, usedSeconds = 0;
   let openPanel = null;
@@ -2085,11 +2056,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   searchNext.addEventListener('click', function () { stepHit(1); });
 
   /* ── 复制 ── */
+  let copyLock = false;
   function openCopyModal() { copyModal.classList.add('is-open'); }
-  function closeCopyModal() {
-    copyModal.classList.remove('is-open');
-    setTimeout(function () { copyToast.classList.remove('is-visible'); copyOptions.style.display = ''; }, 240);
-  }
+  function closeCopyModal() { copyModal.classList.remove('is-open'); }
   copyModal.addEventListener('click', function (e) { if (e.target === copyModal) closeCopyModal(); });
 
   function copyText(str, done) {
@@ -2109,9 +2078,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     } else fallback();
   }
 
+  const CHECK_SVG = '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';
   copyOptions.addEventListener('click', function (e) {
     const btn = e.target.closest('[data-copy]');
-    if (!btn) return;
+    if (!btn || copyLock) return;
     const kind = btn.dataset.copy;
     let text = '';
     if (kind === 'markdown') text = rawMarkdown;
@@ -2119,9 +2089,22 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     else if (kind === 'link') text = window.location.origin + window.location.pathname + '#/post/' + currentSlug;
     copyText(text, function (ok) {
       if (!ok) return;
-      copyOptions.style.display = 'none';
-      copyToast.classList.add('is-visible');
-      setTimeout(closeCopyModal, 750);
+      const others = Array.prototype.filter.call(
+        copyOptions.querySelectorAll('[data-copy]'),
+        function (b) { return b !== btn; }
+      );
+      const savedHTML = btn.innerHTML;
+      copyLock = true;
+      btn.classList.add('is-copied');
+      btn.innerHTML = CHECK_SVG;
+      others.forEach(function (b) { b.classList.add('is-disabled'); });
+      setTimeout(function () {
+        copyLock = false;
+        btn.classList.remove('is-copied');
+        btn.innerHTML = savedHTML;
+        others.forEach(function (b) { b.classList.remove('is-disabled'); });
+        closeCopyModal();
+      }, 2000);
     });
   });
 
@@ -2140,10 +2123,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     resetChapterBlocks();
     clearSearch();
     searchInput.value = '';
-
-    if (document.activeElement && document.activeElement.classList.contains('card')) {
-      returnFocusEl = document.activeElement;
-    }
 
     currentSlug = slug; currentMeta = meta;
     closeAllPanels();
@@ -2272,7 +2251,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
       }
     }, 650);
     try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) {}
-    if (returnFocusEl) { returnFocusEl.focus({ preventScroll: true }); returnFocusEl = null; }
     currentSlug = null;
     contentReady = false;
   }
@@ -2384,7 +2362,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   handleHash();
 
   document.querySelectorAll('.card[data-slug]').forEach(function (card) {
-    function openCard() { window.location.hash = '/post/' + card.dataset.slug; }
+    function openCard() {
+      const target = '#/post/' + card.dataset.slug;
+      /* hash 未变化时不会触发 hashchange（例如关闭后 hash 未被成功清除），
+         此时直接走路由，保证同一卡片可以反复点击 */
+      if (window.location.hash === target) handleHash();
+      else window.location.hash = target;
+    }
     card.addEventListener('click', openCard);
     card.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter' && e.key !== ' ') return;
