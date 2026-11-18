@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
 <style>
 /* ════════════════════════════════════════════
    TOKENS — 纸 / 墨 / 朱砂
@@ -568,6 +569,56 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content ul,.post-content ol{padding-left:1.4rem;margin-bottom:1.1rem;color:var(--text-2);font-size:.95rem;line-height:1.9}
 .post-content li{margin-bottom:.3rem}
 
+/* markdown 补充：表格 / 任务列表 / 删除线 / 深级标题 */
+.post-content h5,.post-content h6{font-family:var(--font-display);font-weight:500;color:var(--text-2);margin:2rem 0 .8rem;line-height:1.4;scroll-margin-top:1rem}
+.post-content h5{font-size:.95rem}
+.post-content h6{font-size:.88rem;color:var(--text-3)}
+.post-content table{display:block;width:100%;overflow-x:auto;border-collapse:collapse;margin:0 0 1.2rem;font-size:.85rem;line-height:1.6}
+.post-content th,.post-content td{border:var(--hairline) solid var(--border);padding:.45rem .8rem;text-align:left;vertical-align:top}
+.post-content th{background:var(--surface);font-weight:600;color:var(--text);white-space:nowrap}
+.post-content td{color:var(--text-2)}
+.post-content tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.post-content li:has(> input[type="checkbox"]){list-style:none;margin-left:-1.4rem}
+.post-content input[type="checkbox"]{accent-color:var(--accent);width:.8rem;height:.8rem;margin:0 .45rem 0 0;vertical-align:-1px}
+.post-content del{color:var(--text-3);text-decoration-color:color-mix(in srgb,var(--accent) 70%,transparent)}
+
+/* 代码高亮配色（接入既有纸/墨/朱砂 token，暗色用提亮的变体） */
+:root{
+  --syn-string:oklch(0.48 0.09 155);
+  --syn-number:oklch(0.55 0.11 60);
+  --syn-title: oklch(0.42 0.08 255);
+  --syn-type:  oklch(0.50 0.08 200);
+}
+[data-theme="dark"]{
+  --syn-string:oklch(0.72 0.09 155);
+  --syn-number:oklch(0.75 0.11 65);
+  --syn-title: oklch(0.78 0.08 255);
+  --syn-type:  oklch(0.74 0.08 200);
+}
+.post-content .hljs-keyword,.post-content .hljs-literal,.post-content .hljs-selector-tag{color:var(--accent)}
+.post-content .hljs-string,.post-content .hljs-regexp,.post-content .hljs-addition,.post-content .hljs-meta .hljs-string{color:var(--syn-string)}
+.post-content .hljs-number,.post-content .hljs-symbol,.post-content .hljs-bullet{color:var(--syn-number)}
+.post-content .hljs-title,.post-content .hljs-title.function_,.post-content .hljs-section,.post-content .hljs-name{color:var(--syn-title)}
+.post-content .hljs-built_in,.post-content .hljs-type,.post-content .hljs-class .hljs-title,.post-content .hljs-title.class_{color:var(--syn-type)}
+.post-content .hljs-attr,.post-content .hljs-attribute,.post-content .hljs-variable,.post-content .hljs-template-variable,.post-content .hljs-selector-class,.post-content .hljs-selector-id{color:var(--text-2)}
+.post-content .hljs-comment,.post-content .hljs-quote{color:var(--text-3);font-style:italic}
+.post-content .hljs-deletion{color:var(--accent)}
+.post-content .hljs-emphasis{font-style:italic}
+.post-content .hljs-strong{font-weight:600}
+
+/* KaTeX 公式 */
+.post-content .katex{font-size:1.06em;color:var(--text)}
+.post-content .katex-display{margin:1.4rem 0;overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+
+/* 脚注 */
+.post-content sup a[data-footnote-ref]{border-bottom:none;font-family:var(--font-mono);font-size:.72em;padding:0 .15em}
+.post-content .footnotes{margin-top:2.6rem;padding-top:1rem;border-top:var(--hairline) solid var(--border);font-size:.82rem;color:var(--text-3)}
+.post-content .footnotes ol{padding-left:1.2rem;margin-bottom:0}
+.post-content .footnotes li{margin-bottom:.4rem;line-height:1.7}
+.post-content .footnotes p{display:inline;margin:0}
+.post-content a[data-footnote-backref]{border-bottom:none;margin-left:.3em}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
 /* 搜索高亮 */
 .post-content mark.s-hit{
   background:var(--mark-bg);color:var(--text);
@@ -1071,6 +1122,71 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.12.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked-highlight@2.2.4/lib/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked-footnote@1.4.0/dist/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@5.1.13/lib/index.umd.js"></script>
+<script>
+/* ═══════════════ Markdown 管线配置 ═══════════════
+   每个扩展独立挂载、独立降级：CDN 挂了只损失对应能力，文章仍可阅读 */
+(function () {
+  if (typeof marked === 'undefined' || !marked.use) return;
+
+  /* 渲染器覆盖：标题锚点 / 外链新窗口 / 图片懒加载 */
+  var slugCounts = {};
+  function slugify(raw) {
+    var s = String(raw).toLowerCase().trim()
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^\w一-鿿\-]/g, '');
+    if (!s) s = 'section';
+    var n = slugCounts[s] || 0;
+    slugCounts[s] = n + 1;
+    return n ? s + '-' + n : s;
+  }
+  marked.use({
+    hooks: {
+      preprocess: function (src) { slugCounts = {}; return src; }
+    },
+    renderer: {
+      heading: function (text, level, raw) {
+        return '<h' + level + ' id="' + slugify(raw) + '">' + text + '</h' + level + '>';
+      },
+      link: function (href, title, text) {
+        if (/^https?:\/\//i.test(href)) {
+          return '<a href="' + href + '"' + (title ? ' title="' + title + '"' : '') +
+            ' target="_blank" rel="noopener noreferrer">' + text + '</a>';
+        }
+        return false; /* 站内链接与锚点走默认渲染 */
+      },
+      image: function (href, title, text) {
+        return '<img src="' + href + '" alt="' + text + '"' +
+          (title ? ' title="' + title + '"' : '') + ' loading="lazy" decoding="async">';
+      }
+    }
+  });
+
+  /* 代码高亮 */
+  if (window.hljs && window.markedHighlight && markedHighlight.markedHighlight) {
+    marked.use(markedHighlight.markedHighlight({
+      langPrefix: 'hljs language-',
+      highlight: function (code, lang) {
+        var language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return hljs.highlight(code, { language: language }).value;
+      }
+    }));
+  }
+
+  /* 脚注 */
+  if (window.markedFootnote) marked.use(markedFootnote());
+
+  /* 数学公式：解析失败时保留源码文本，不让整篇文章崩掉 */
+  if (window.markedKatex && window.katex) {
+    marked.use(markedKatex({ throwOnError: false, nonStandard: false }));
+  }
+})();
+</script>
 <script>
 /* ═══════════════ 背景滚动锁：支持菜单与文章页叠加 ═══════════════ */
 (function () {
@@ -1749,7 +1865,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 
   /* ── 章节指示器 ── */
   function buildHeadings() {
-    const all = Array.prototype.slice.call(postContent.querySelectorAll('h1,h2,h3,h4'));
+    const all = Array.prototype.slice.call(postContent.querySelectorAll('h1,h2,h3,h4'))
+      .filter(function (el) { return !el.classList.contains('sr-only'); }); // 排除脚注区块的无障碍标签
     all.shift(); // 第一个标题（通常是文章主标题）不参与索引
     headings = all.map(function (el) {
       return { el: el, level: parseInt(el.tagName[1], 10), text: el.textContent.trim() };
