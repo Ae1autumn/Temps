@@ -343,17 +343,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
   width:100%;height:44px;padding:0;border-radius:8px;
   background:var(--bg);color:var(--text-2);
+  border:var(--hairline) solid var(--border);
   transition:color .18s,background-color .18s;
 }
 .menu-link-btn:hover{color:var(--text);background:color-mix(in srgb,var(--bg) 82%,var(--text-3))}
 .menu-link-btn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.menu-link-hint{
-  position:absolute;top:100%;left:0;width:100%;margin-top:12px;
-  text-align:center;font-family:var(--font-mono);font-size:.64rem;
-  color:var(--accent);letter-spacing:.04em;
-  opacity:0;transition:opacity .25s;pointer-events:none;
-}
-.menu-link-hint.is-visible{opacity:1}
 /* 上方：主题滑块（日 / 自适应 / 夜） */
 .theme-slider{
   position:relative;display:flex;flex-shrink:0;height:54px;padding:4px;
@@ -463,7 +457,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   -webkit-mask-image:linear-gradient(to right,transparent,#000 16px,#000 calc(100% - 16px),transparent);
   mask-image:linear-gradient(to right,transparent,#000 16px,#000 calc(100% - 16px),transparent);
 }
-.post-chapter-block .chap-dot{width:4px;height:4px;border-radius:50%;background:var(--accent);flex-shrink:0}
+/* 章节切换：文本自下方滚入 */
+@keyframes chap-roll-in{
+  from{transform:translateY(.85em);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+.chap-text.chap-in{animation:chap-roll-in .32s var(--ease-out)}
+@media (prefers-reduced-motion:reduce){
+  .chap-text.chap-in{animation:none}
+}
 .post-chapter-sep{
   font-family:var(--font-mono);font-size:.72rem;color:var(--text-3);flex-shrink:0;
   overflow:hidden;max-width:2.2em;padding:0 .5em;white-space:nowrap;
@@ -480,6 +482,58 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-toolbar-actions .icon-btn{width:36px;height:36px}
 .post-toolbar-actions .icon-btn svg{width:16px;height:16px}
 .post-toolbar-actions .icon-btn.is-active{color:var(--accent);background:var(--surface)}
+
+/* ── 全屏阅读模式 ── */
+#post-page.is-fullscreen .post-toolbar-row,
+#post-page.is-fullscreen .post-header-row,
+#post-page.is-fullscreen .post-blur{display:none}
+#post-page.is-fullscreen .post-content{padding-top:4.4rem}
+.fs-float{
+  position:fixed;top:calc(12px + env(safe-area-inset-top));z-index:42;
+  display:none;align-items:center;
+  height:38px;padding:0 .8rem;
+  background:color-mix(in srgb,var(--surface) 72%,transparent);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:var(--hairline) solid var(--border);border-radius:10px;
+  box-shadow:0 8px 24px -12px var(--shadow-drop);
+}
+#post-page.is-fullscreen .fs-float{display:flex}
+.fs-chap{
+  left:12px;max-width:calc(100vw - 150px);overflow:hidden;cursor:pointer;
+  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.02em;color:var(--text-2);
+  transition:border-color .18s;
+}
+.fs-chap:hover{border-color:var(--accent)}
+/* 阅读进度：背景填充（宽度由 JS 写入 --fs-progress） */
+.fs-chap::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;border-radius:inherit;
+  width:var(--fs-progress,0%);
+  background:color-mix(in srgb,var(--accent) 12%,transparent);
+  transition:width .12s linear;pointer-events:none;
+}
+.fs-chap > *{position:relative}
+/* 不用容器 gap：折叠元素也会占 gap，导致右侧多余空隙 */
+.fs-chap-block{
+  display:flex;align-items:center;white-space:nowrap;min-width:0;overflow:hidden;
+  transition:max-width .35s var(--ease-out),opacity .25s,margin .35s var(--ease-out);
+}
+.fs-chap-block:not(.collapsed){margin-left:.45rem}
+.fs-chap-hint.collapsed + .fs-chap-block:not(.collapsed){margin-left:0}
+.fs-chap-block .chap-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs-chap-block.collapsed{max-width:0!important;margin-left:0!important;opacity:0;pointer-events:none}
+.fs-chap-sep{color:var(--text-3);flex-shrink:0;overflow:hidden;max-width:2.2em;padding:0 .5em;white-space:nowrap;
+  transition:max-width .35s var(--ease-out),opacity .25s,padding .35s var(--ease-out)}
+.fs-chap-sep.collapsed{max-width:0!important;padding:0;opacity:0}
+.fs-chap-hint{color:var(--text-3);letter-spacing:.04em;transition:opacity .25s}
+.fs-chap-hint.collapsed{opacity:0;max-width:0;overflow:hidden}
+.fs-timer{
+  right:12px;flex-shrink:0;
+  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.04em;color:var(--text-3);
+}
+.fs-timer svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+/* 全屏时 TOC 标题栏额外显示「退出全屏」 */
+#toc-exit-fs{display:none}
+#post-page.is-fullscreen ~ #panel-chapters #toc-exit-fs{display:flex}
 
 /* content */
 .post-content{
@@ -634,23 +688,39 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 }
 #copy-modal.is-open{opacity:1;pointer-events:auto;visibility:visible;transition:opacity .22s}
 .copy-box{
-  width:min(300px,calc(100vw - 3rem));
+  width:min(320px,calc(100vw - 3rem));
+  display:flex;flex-direction:column;gap:12px;padding:16px;
   background:var(--surface);border:var(--hairline) solid var(--border);
-  border-radius:var(--radius);overflow:hidden;
+  border-radius:12px;
+  box-shadow:0 18px 50px -18px var(--shadow-drop);
   transform:translateY(14px) scale(.96);
   transition:transform .28s var(--ease-spring);
 }
 #copy-modal.is-open .copy-box{transform:translateY(0) scale(1)}
-.copy-head{padding:.95rem 1.1rem .7rem;border-bottom:var(--hairline) solid var(--border)}
-.copy-head h3{font-family:var(--font-mono);font-size:.68rem;font-weight:400;letter-spacing:.24em;text-transform:uppercase;color:var(--text-3)}
-.copy-opt{
-  display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;
-  padding:.85rem 1.1rem;font-size:.88rem;color:var(--text-2);
-  transition:background-color .15s,color .15s;
+#copy-options{display:flex;flex-direction:column;gap:12px}
+/* 上：复制链接（通栏，同菜单链接按钮） */
+.copy-main{
+  display:flex;align-items:center;justify-content:center;gap:.55rem;
+  width:100%;height:44px;border-radius:8px;
+  background:var(--bg);color:var(--text-2);
+  border:var(--hairline) solid var(--border);
+  font-size:.85rem;letter-spacing:.02em;
+  transition:color .18s,background-color .18s;
 }
-.copy-opt:hover{background:var(--bg);color:var(--text)}
-.copy-opt svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-.copy-opt .opt-sub{margin-left:auto;font-family:var(--font-mono);font-size:.64rem;color:var(--text-3);letter-spacing:.03em}
+.copy-main:hover{color:var(--text);background:color-mix(in srgb,var(--bg) 82%,var(--text-3))}
+.copy-main svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+/* 下：MD / TXT 双块（与上方同高） */
+.copy-split{display:flex;gap:12px}
+.copy-cell{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  height:44px;border-radius:8px;
+  background:var(--bg);color:var(--text-2);
+  border:var(--hairline) solid var(--border);
+  transition:color .18s,background-color .18s;
+}
+.copy-cell:hover{color:var(--accent);background:color-mix(in srgb,var(--bg) 82%,var(--text-3))}
+.copy-cell svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.copy-cell .ic-t{font-family:var(--font-mono);font-size:8.5px;font-weight:700;stroke:none;fill:currentColor}
 .copy-toast{
   display:none;align-items:center;justify-content:center;gap:.45rem;
   padding:.95rem;font-size:.85rem;color:var(--accent);
@@ -823,14 +893,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
         <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
       </button>
     </div>
-    <!-- 下：链接按钮 -->
-    <button class="menu-link-btn" id="menu-link-btn" aria-label="链接" title="链接">
+    <!-- 下：链接按钮（原生跳转，交给浏览器） -->
+    <a class="menu-link-btn" id="menu-link-btn" href="links.html" aria-label="链接" title="链接">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
       </svg>
-    </button>
-    <p class="menu-link-hint" id="menu-link-hint">链接页还在路上。</p>
+    </a>
   </div>
 </div>
 
@@ -864,11 +933,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     <div class="post-toolbar-row" id="post-toolbar-row">
       <button class="post-chapters-wrap" id="post-chapters-wrap" aria-label="章节目录">
         <span class="post-chapters-hint" id="chapters-hint">目录</span>
-        <span class="post-chapter-block collapsed" id="post-chap-1"><span class="chap-dot" aria-hidden="true"></span><span class="chap-text"></span></span>
+        <span class="post-chapter-block collapsed" id="post-chap-1"><span class="chap-text"></span></span>
         <span class="post-chapter-sep collapsed" id="post-chap-sep">-</span>
         <span class="post-chapter-block collapsed" id="post-chap-2"><span class="chap-text"></span></span>
       </button>
       <div class="post-toolbar-actions">
+        <button class="icon-btn" id="btn-fullscreen" aria-label="全屏阅读" title="全屏阅读（桌面端 Ctrl）">
+          <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        </button>
         <button class="icon-btn" id="btn-copy" aria-label="复制" title="复制">
           <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
@@ -882,6 +954,20 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     </div>
 
     <div class="post-content" id="post-content"></div>
+
+    <!-- 全屏悬浮：章节指示器（左上） -->
+    <button class="fs-float fs-chap" id="fs-chap" aria-label="章节目录" title="章节目录">
+      <span class="fs-chap-hint" id="fs-chap-hint">目录</span>
+      <span class="fs-chap-block collapsed" id="fs-chap-1"><span class="chap-text"></span></span>
+      <span class="fs-chap-sep collapsed" id="fs-chap-sep">-</span>
+      <span class="fs-chap-block collapsed" id="fs-chap-2"><span class="chap-text"></span></span>
+    </button>
+
+    <!-- 全屏悬浮：已用时间（右上） -->
+    <div class="fs-float fs-timer" id="fs-timer" aria-label="已用时间">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span id="fs-used">00</span>
+    </div>
   </div>
   <div id="panel-overlay"></div>
 </div>
@@ -892,6 +978,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     <div class="panel-head">
       <span class="panel-title">目录</span>
       <div class="panel-head-actions">
+        <button class="panel-close" id="toc-exit-fs" aria-label="退出全屏" title="退出全屏">
+          <svg viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
+        </button>
         <button class="panel-close" id="toc-top" aria-label="回到顶部" title="回到顶部">
           <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -956,27 +1045,30 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 <!-- 复制 modal -->
 <div id="copy-modal" role="dialog" aria-modal="true" aria-label="复制">
   <div class="copy-box">
-    <div class="copy-head"><h3>复制</h3></div>
     <div id="copy-options">
-      <button class="copy-opt" data-copy="markdown">
-        <svg viewBox="0 0 24 24"><path d="M4 7V5h16v2M4 12h16M4 19h10"/></svg>
-        Markdown 原文
-        <span class="opt-sub">.md</span>
-      </button>
-      <button class="copy-opt" data-copy="text">
-        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-        纯文本正文
-        <span class="opt-sub">txt</span>
-      </button>
-      <button class="copy-opt" data-copy="link">
+      <!-- 上：复制链接 -->
+      <button class="copy-main" data-copy="link">
         <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-        文章链接
-        <span class="opt-sub">url</span>
       </button>
+      <!-- 下：MD / TXT 双块 -->
+      <div class="copy-split">
+        <button class="copy-cell" data-copy="markdown" aria-label="复制 Markdown">
+          <svg viewBox="0 0 24 24">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>
+            <text class="ic-t" x="9.2" y="15" text-anchor="middle">M</text>
+            <path d="M15.5 12.5v4m-1.6-1.6 1.6 1.6 1.6-1.6"/>
+          </svg>
+        </button>
+        <button class="copy-cell" data-copy="text" aria-label="复制纯文本">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="12.5" x2="8" y2="12.5"/><line x1="14" y1="16" x2="8" y2="16"/><line x1="11" y1="9" x2="8" y2="9"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="copy-toast" id="copy-toast">
       <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-      已复制到剪贴板
     </div>
   </div>
 </div>
@@ -1087,7 +1179,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     if (v) window.lockBackgroundScroll();
     else window.unlockBackgroundScroll();
     if (v) {
-      setTimeout(function () { if (open) linkBtn.focus(); }, 120);
+      setTimeout(function () { if (open) document.getElementById('menu-link-btn').focus(); }, 120);
     } else {
       btn.focus({ preventScroll: true });
     }
@@ -1097,16 +1189,6 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     if (!box.contains(e.target)) set(false);
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && open) set(false); });
-
-  /* 链接按钮：占位跳转 */
-  const linkBtn = document.getElementById('menu-link-btn');
-  const linkHint = document.getElementById('menu-link-hint');
-  let hintTimer = null;
-  linkBtn.addEventListener('click', function () {
-    linkHint.classList.add('is-visible');
-    clearTimeout(hintTimer);
-    hintTimer = setTimeout(function () { linkHint.classList.remove('is-visible'); }, 1800);
-  });
 })();
 
 /* ═══════════════ 全站搜索（全屏模态） ═══════════════ */
@@ -1461,6 +1543,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   const eyeOpen         = $('post-eye-open');
   const eyeClosed       = $('post-eye-closed');
   const clockHand       = $('post-clock-hand');
+  const btnFullscreen   = $('btn-fullscreen');
+  const fsChap          = $('fs-chap');
+  const fsChapHint      = $('fs-chap-hint');
+  const fsChap1         = $('fs-chap-1');
+  const fsChapSep       = $('fs-chap-sep');
+  const fsChap2         = $('fs-chap-2');
+  const fsUsed          = $('fs-used');
 
   /* 状态 */
   let currentSlug = null, currentMeta = null;
@@ -1472,6 +1561,18 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   let headings = [], tocItems = [], activeTocIdx = -1;
   let currentChap1 = '', currentChap2 = '';
   let postScrollLocked = false;
+  let isFullscreen = false;
+
+  /* ── 全屏阅读模式 ── */
+  function setFullscreen(on) {
+    if (isFullscreen === on) return;
+    isFullscreen = on;
+    postPage.classList.toggle('is-fullscreen', on);
+    btnFullscreen.classList.toggle('is-active', on);
+    btnFullscreen.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on) updateChapterBlocks();       // 同步悬浮章节指示器
+    if (openPanel) syncPanelPositions(); // 全屏下面板需重新定位
+  }
 
   /* ── blur 高度 ── */
   function syncBlurHeight() {
@@ -1484,6 +1585,23 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     const r = postContent.getBoundingClientRect();
     const tr = postToolbarRow.getBoundingClientRect();
     const w = Math.min(Math.max(r.width * 0.5, 190), 340);
+    if (isFullscreen) {
+      // 工具栏隐藏：TOC 锚定左上角悬浮指示器下方，搜索/评论贴顶部
+      const fsTop = (12 + 38 + GAP); // 悬浮条 top + 高度 + 间距
+      const fsMaxH = Math.max(window.innerHeight - fsTop - GAP, 160);
+      panelChapters.style.top = fsTop + 'px';
+      panelChapters.style.left = '12px';
+      panelChapters.style.width = w + 'px';
+      panelChapters.style.maxHeight = fsMaxH + 'px';
+      panelComments.style.top = fsTop + 'px';
+      panelComments.style.left = (r.left + GAP) + 'px';
+      panelComments.style.right = (window.innerWidth - r.right + GAP) + 'px';
+      panelSearch.style.top = fsTop + 'px';
+      panelSearch.style.right = Math.max(window.innerWidth - r.right + GAP, 8) + 'px';
+      panelSearch.style.width = w + 'px';
+      panelSearch.style.maxHeight = fsMaxH + 'px';
+      return;
+    }
     panelChapters.style.top = (r.top + GAP) + 'px';
     panelChapters.style.left = Math.max(r.left + GAP, 8) + 'px';
     panelChapters.style.width = w + 'px';
@@ -1601,7 +1719,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     }, 1000);
   }
   function pauseTimer() { clearInterval(timerInterval); timerInterval = null; }
-  function renderTimer() { postUsed.textContent = String(Math.floor(usedSeconds / 60)).padStart(2, '0'); }
+  function setUsed(t) { postUsed.textContent = t; fsUsed.textContent = t; }
+  function renderTimer() { setUsed(String(Math.floor(usedSeconds / 60)).padStart(2, '0')); }
   function estimateReadMin(text) {
     const zh = (text.match(/[一-龥]/g) || []).length;
     const en = text.replace(/[一-龥]/g, '').trim().split(/\s+/).filter(Boolean).length;
@@ -1610,7 +1729,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   function setTimerError() {
     eyeOpen.style.display = 'none'; eyeClosed.style.display = '';
     clockHand.setAttribute('points', '12 6 12 12 12 12');
-    postUsed.textContent = '-'; postRead.textContent = '-';
+    setUsed('-'); postRead.textContent = '-';
   }
   function resetTimerNormal() {
     eyeOpen.style.display = ''; eyeClosed.style.display = 'none';
@@ -1622,6 +1741,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     const max = postContent.scrollHeight - postContent.clientHeight;
     const pct = max > 0 ? (postContent.scrollTop / max) * 100 : 0;
     postHeaderRow.style.setProperty('--post-progress', pct.toFixed(2) + '%');
+    fsChap.style.setProperty('--fs-progress', pct.toFixed(2) + '%');
   }
   function isFullyRead() {
     const max = postContent.scrollHeight - postContent.clientHeight;
@@ -1702,6 +1822,16 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     el.addEventListener('scroll', function () { updateFade(el); }, { passive: true });
   });
 
+  /* 章节切换：文本变化时自下而上滚入 */
+  function rollText(block, t) {
+    const el = block.querySelector('.chap-text');
+    if (el.textContent === t) return;
+    el.textContent = t;
+    el.classList.remove('chap-in');
+    void el.offsetWidth; // 重启动画
+    el.classList.add('chap-in');
+  }
+
   function updateChapterBlocks() {
     const c = getCurrentHeadings();
     if (c.parent === currentChap1 && c.child === currentChap2) { syncTocActive(); return; }
@@ -1709,16 +1839,23 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     const has = !!c.parent;
     chapHint.classList.toggle('collapsed', has);
     chap1.classList.toggle('collapsed', !has);
-    chap1.querySelector('.chap-text').textContent = c.parent;
+    rollText(chap1, c.parent);
     chap1.scrollLeft = 0;
     chapSep.classList.toggle('collapsed', !c.child);
     chap2.classList.toggle('collapsed', !c.child);
-    chap2.querySelector('.chap-text').textContent = c.child;
+    rollText(chap2, c.child);
     chap2.scrollLeft = 0;
     // 先清掉上一章残留的渐隐，动画落定后再按新文本测量
     chap1.classList.remove('fade-l', 'fade-r');
     chap2.classList.remove('fade-l', 'fade-r');
     setTimeout(function () { updateFade(chap1); updateFade(chap2); }, 380);
+    // 同步全屏悬浮章节指示器
+    fsChapHint.classList.toggle('collapsed', has);
+    fsChap1.classList.toggle('collapsed', !has);
+    rollText(fsChap1, c.parent);
+    fsChapSep.classList.toggle('collapsed', !c.child);
+    fsChap2.classList.toggle('collapsed', !c.child);
+    rollText(fsChap2, c.child);
     syncTocActive();
   }
   function resetChapterBlocks() {
@@ -1730,6 +1867,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     chap1.classList.add('collapsed');
     chapSep.classList.add('collapsed');
     chap2.classList.add('collapsed');
+    fsChapHint.classList.remove('collapsed');
+    fsChap1.classList.add('collapsed');
+    fsChapSep.classList.add('collapsed');
+    fsChap2.classList.add('collapsed');
   }
 
   /* ── 目录面板 ── */
@@ -1969,7 +2110,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   }
 
   copyOptions.addEventListener('click', function (e) {
-    const btn = e.target.closest('.copy-opt');
+    const btn = e.target.closest('[data-copy]');
     if (!btn) return;
     const kind = btn.dataset.copy;
     let text = '';
@@ -2022,7 +2163,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     postHeaderRow.style.setProperty('--post-progress', '0%');
     postHeaderRow.classList.add('is-loading');
     resetTimerNormal();
-    postUsed.textContent = '00'; postRead.textContent = '—';
+    setUsed('00'); postRead.textContent = '—';
 
     /* 加载进度：有 Content-Length 按字节进度，否则按已收字节渐近 90% */
     function setLoadProgress(pct) {
@@ -2102,6 +2243,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     postLoadToken++;
     if (currentAbort) { currentAbort.abort(); currentAbort = null; }
     closeAllPanels();
+    setFullscreen(false);
     const isLoading = postHeaderRow.classList.contains('is-loading');
     if (!loadFailed && !isLoading && contentReady) {
       if (isFullyRead()) clearState(currentSlug); else saveState(currentSlug);
@@ -2155,18 +2297,46 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     closePost();
   });
 
+  /* 加载失败时：所有按钮点击都转为重载（防卡死、方便探索） */
+  function reloadPost() { if (currentSlug && currentMeta) openPost(currentSlug, currentMeta); }
+  function guardFailed() { if (!loadFailed) return false; reloadPost(); return true; }
+
   btnCopy.addEventListener('click', function () {
-    if (loadFailed || !rawMarkdown) return;
+    if (guardFailed() || !rawMarkdown) return;
     openCopyModal();
   });
-  btnComments.addEventListener('click', function () { togglePanel('comments'); });
+  btnComments.addEventListener('click', function () {
+    if (guardFailed()) return;
+    togglePanel('comments');
+  });
   btnSearchPost.addEventListener('click', function () {
-    if (loadFailed) return;
+    if (guardFailed()) return;
     togglePanel('search');
   });
   chapWrap.addEventListener('click', function () {
-    if (loadFailed || !headings.length) return;
+    if (guardFailed() || !headings.length) return;
     togglePanel('chapters');
+  });
+  btnFullscreen.addEventListener('click', function () {
+    if (guardFailed()) return;
+    setFullscreen(!isFullscreen);
+  });
+  fsChap.addEventListener('click', function () {
+    if (guardFailed() || !headings.length) return;
+    togglePanel('chapters');
+  });
+  $('toc-exit-fs').addEventListener('click', function () { setFullscreen(false); });
+
+  /* 桌面端：单击 Ctrl 进入 / 退出全屏（Ctrl 组合键不触发） */
+  let ctrlSolo = false;
+  document.addEventListener('keydown', function (e) {
+    if (!currentSlug || loadFailed) { ctrlSolo = false; return; }
+    if (e.key === 'Control' && !e.repeat && !e.metaKey && !e.altKey && !e.shiftKey) { ctrlSolo = true; return; }
+    ctrlSolo = false;
+  });
+  document.addEventListener('keyup', function (e) {
+    if (e.key === 'Control' && ctrlSolo && currentSlug && !loadFailed) setFullscreen(!isFullscreen);
+    ctrlSolo = false;
   });
 
   document.addEventListener('keydown', function (e) {
@@ -2180,6 +2350,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     if (e.key !== 'Escape') return;
     if (copyModal.classList.contains('is-open')) { closeCopyModal(); return; }
     if (openPanel) { closeAllPanels(); return; }
+    if (isFullscreen) { setFullscreen(false); return; }
     if (currentSlug) closePost();
   });
 
