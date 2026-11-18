@@ -2372,6 +2372,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
           '<button class="post-reload-btn" id="post-reload-btn">Reload</button>' +
         '</div>';
       document.getElementById('post-reload-btn').addEventListener('click', function () { openPost(slug, meta); });
+      refreshVFades(); // 失败页内容短，清除上一篇残留的渐隐
       return;
     }
 
