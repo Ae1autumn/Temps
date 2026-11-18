@@ -83,7 +83,7 @@ ___
 
 图片测试（使用占位图）：
 
-![Placeholder Image](https://via.placeholder.com/300x100?text=Placeholder+Image)
+![Placeholder Image](https://aermium.com/res/image/e-grass.jpg)
 
 [ref1]: https://example.com "Reference Link"
 

@@ -1,0 +1,32 @@
+{
+  "posts": [
+    {
+      "slug": "Text",
+      "title": "Text",
+      "date": "2026.11.19",
+      "tags": ["Text"],
+      "excerpt": "Text",
+      "src": "./posts/test-t.md",
+      "pin": "true"
+    },
+  ],
+
+  "goatcounter": {
+    "code": "",
+    "pathPrefix": "/post/",
+    "cacheKey": "ae_views_v1",
+    "cacheTTL": 1800000
+  },
+
+  "giscus": {
+    "repo": "Ae1autumn/ae1autumn.github.io",
+    "repoId": "",
+    "category": "Comments",
+    "categoryId": "",
+    "mapping": "specific",
+    "strict": "1",
+    "reactionsEnabled": "1",
+    "inputPosition": "bottom",
+    "lang": "zh-CN"
+  }
+}
