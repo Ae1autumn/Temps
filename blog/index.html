@@ -304,7 +304,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 /* ═══ hamburger ═══ */
 .hamburger{display:block;width:17px;height:12px;position:relative}
 .hb-line{position:absolute;left:0;width:17px;height:1.5px;background:currentColor;transform-origin:center;
-  transition:transform .3s var(--ease-out),opacity .2s}
+  transition:transform .45s var(--ease-out),opacity .3s}
 .hb-top{top:0}.hb-mid{top:5.25px}.hb-bot{top:10.5px}
 .menu-btn.is-open .hb-top{transform:translateY(5.25px) rotate(45deg)}
 .menu-btn.is-open .hb-mid{opacity:0;transform:scaleX(0)}
@@ -319,11 +319,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   transform:translateY(-100%);
   pointer-events:none;visibility:hidden;
-  transition:transform .28s var(--ease-out),visibility 0s .28s;
+  transition:transform .42s var(--ease-out),visibility 0s .42s;
 }
 .menu-overlay.is-open{
   transform:translateY(0);pointer-events:auto;visibility:visible;
-  transition:transform .28s var(--ease-out);
+  transition:transform .42s var(--ease-out);
 }
 .menu-box{
   position:relative;
@@ -336,7 +336,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   box-shadow:0 18px 50px -18px var(--shadow-drop);
   opacity:0;
   transform:translateY(-12px) scale(.98);
-  transition:transform .24s var(--ease-out),opacity .2s ease;
+  transition:transform .38s var(--ease-out),opacity .3s ease;
 }
 .menu-overlay.is-open .menu-box{opacity:1;transform:translateY(0) scale(1)}
 /* 下方操作按钮 */
@@ -349,6 +349,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 }
 .menu-link-btn:hover{color:var(--text);background:color-mix(in srgb,var(--bg) 82%,var(--text-3))}
 .menu-link-btn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+/* 链接与阅读速度并排：不改变菜单高度 */
+.menu-row{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.menu-row .menu-link-btn{width:auto;flex:1 1 auto;min-width:0}
+.menu-row .menu-icon-btn{width:44px;height:44px;flex:0 0 44px;aspect-ratio:1}
 /* 上方：主题滑块（日 / 自适应 / 夜） */
 .theme-slider{
   position:relative;display:flex;flex-shrink:0;height:54px;padding:4px;
@@ -698,6 +702,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   pointer-events:auto;will-change:transform;
   display:flex;flex-direction:column;overflow:hidden;
 }
+/* 磨砂面板：数值与全屏章节指示器一致（surface 72% + blur 10px） */
+#panel-chapters .panel-box,
+#panel-search .panel-box,
+#panel-comments:not(.is-loaded) .panel-box{
+  background:color-mix(in srgb,var(--surface) 72%,transparent);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
 /* 左右面板：宽度≈容器一半，高度随内容，上限由 JS 约束 */
 #panel-chapters,#panel-search{height:auto}
 #panel-chapters .panel-box{transform:translateX(calc(-100% - 20px));transition:transform .36s var(--ease-spring)}
@@ -705,8 +716,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #panel-search .panel-box{transform:translateX(calc(100% + 20px));transition:transform .36s var(--ease-spring)}
 #panel-search.is-open .panel-box{transform:translateX(0)}
 #panel-comments{
-  height:clamp(240px,62vh,560px);
+  height:180px;
   overflow:hidden;
+  transition:height .3s var(--ease-out);
 }
 #panel-comments .panel-box{height:100%;transform:translateY(-100%);transition:transform .36s var(--ease-spring)}
 #panel-comments.is-open .panel-box{transform:translateY(0)}
@@ -853,10 +865,69 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   color:color-mix(in srgb,#2fae72 62%,transparent)!important;
 }
 .copy-main.is-disabled,.copy-cell.is-disabled{opacity:.35;pointer-events:none}
+
+/* ═══ 阅读速度 modal ═══ */
+#speed-modal{
+  position:fixed;inset:0;z-index:60;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--scrim);
+  opacity:0;pointer-events:none;visibility:hidden;
+  transition:opacity .22s,visibility 0s .22s;
+}
+#speed-modal.is-open{opacity:1;pointer-events:auto;visibility:visible;transition:opacity .22s}
+.speed-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:.55rem;
+  transform:translateY(10px) scale(.98);
+  transition:transform .28s var(--ease-spring);
+}
+#speed-modal.is-open .speed-wrap{transform:translateY(0) scale(1)}
+.speed-wrap{
+  transform:translateY(10px) scale(.98);
+  transition:transform .28s var(--ease-spring);
+}
+#speed-modal.is-open .speed-wrap{transform:translateY(0) scale(1)}
+.speed-box{
+  width:min(280px,calc(100vw - 3rem));
+  padding:8px 10px 9px;
+  background:var(--surface);
+  border:var(--hairline) solid var(--border);
+  border-radius:12px;
+  transition:border-color .18s;
+}
+.speed-box:focus-within{border-color:var(--accent)}
+.speed-field{
+  position:relative;
+  background:var(--bg);
+  border-radius:10px;
+}
+.speed-input{
+  display:block;width:100%;height:38px;
+  padding:0 34px;
+  border:none;background:none;outline:none;
+  color:var(--text);font-family:var(--font-mono);font-size:1rem;
+  text-align:center;appearance:textfield;-moz-appearance:textfield;
+}
+.speed-input::-webkit-outer-spin-button,
+.speed-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.speed-reset{
+  position:absolute;top:0;right:0;width:34px;height:38px;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  background:none;border:none;color:var(--text-3);
+  transition:color .18s;
+}
+.speed-reset svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.speed-reset.is-active{color:var(--accent)}
+@media (hover:hover){
+  .speed-reset:hover{color:var(--accent)}
+}
+.speed-hint{
+  margin-top:6px;
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;
+  color:var(--text-3);text-align:center;
+}
 @media (max-width:560px){
   .post-chapter-block{max-width:38vw}
   .post-content{padding-top:1.6rem}
-  #panel-comments{height:70dvh}
 }
 </style>
 <base target="_blank">
@@ -950,13 +1021,21 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
         <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
       </button>
     </div>
-    <!-- 下：链接按钮（原生跳转，交给浏览器） -->
-    <a class="menu-link-btn" id="menu-link-btn" href="links.html" aria-label="链接" title="链接">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-      </svg>
-    </a>
+    <!-- 下：链接 + 阅读速度 -->
+    <div class="menu-row">
+      <a class="menu-link-btn" id="menu-link-btn" href="links.html" aria-label="链接" title="链接">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+      </a>
+      <button class="menu-link-btn menu-icon-btn" id="btn-read-speed" type="button" aria-label="阅读速度" title="阅读速度">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1128,6 +1207,21 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
           </svg>
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 阅读速度 modal -->
+<div id="speed-modal" aria-hidden="true">
+  <div class="speed-wrap" role="dialog" aria-modal="true" aria-label="阅读速度">
+    <div class="speed-box">
+      <div class="speed-field">
+        <input class="speed-input" id="speed-input" type="number" inputmode="numeric" enterkeyhint="done" min="50" max="2000" step="10" aria-describedby="speed-hint" aria-label="阅读速度（字/分钟）">
+        <button class="speed-reset" id="speed-reset" type="button" aria-label="恢复默认值" title="恢复默认值">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+      </div>
+      <p class="speed-hint" id="speed-hint">Speed/70%</p>
     </div>
   </div>
 </div>
@@ -1513,7 +1607,7 @@ window.trackPostView = function (slug) {
     if (v) window.lockBackgroundScroll();
     else window.unlockBackgroundScroll();
     if (v) {
-      setTimeout(function () { if (open) document.getElementById('menu-link-btn').focus(); }, 120);
+      setTimeout(function () { if (open && !speedOpen) document.getElementById('menu-link-btn').focus(); }, 120);
     } else {
       btn.focus({ preventScroll: true });
     }
@@ -1523,6 +1617,94 @@ window.trackPostView = function (slug) {
     if (!box.contains(e.target)) set(false);
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && open) set(false); });
+
+  /* ── 阅读速度（估算阅读时长用）── */
+  const SPEED_KEY = 'ae_read_speed';
+  const SPEED_DEFAULT = 300;
+  const speedBtn = document.getElementById('btn-read-speed');
+  const speedModal = document.getElementById('speed-modal');
+  const speedInput = document.getElementById('speed-input');
+  const speedReset = document.getElementById('speed-reset');
+  let speedOpen = false;
+
+  function clampSpeed(v) {
+    if (String(v).trim() === '') return SPEED_DEFAULT;
+    const n = Math.round(Number(v));
+    if (!Number.isFinite(n)) return SPEED_DEFAULT;
+    return Math.min(2000, Math.max(50, n));
+  }
+  function getReadSpeed() {
+    try {
+      const raw = localStorage.getItem(SPEED_KEY);
+      if (raw == null) return SPEED_DEFAULT;
+      const n = Number(raw);
+      return Number.isFinite(n) && n >= 50 && n <= 2000 ? n : SPEED_DEFAULT;
+    } catch (e) {
+      return SPEED_DEFAULT;
+    }
+  }
+  window.getReadSpeed = getReadSpeed;
+
+  function openSpeed() {
+    speedReset.classList.remove('is-active');
+    speedInput.value = String(getReadSpeed());
+    speedOpen = true;
+    speedModal.classList.add('is-open');
+    speedModal.setAttribute('aria-hidden', 'false');
+    window.lockBackgroundScroll();
+    setTimeout(function () {
+      if (!speedOpen) return;
+      speedInput.focus();
+      speedInput.select();
+    }, 80);
+  }
+  function closeSpeed() {
+    if (!speedOpen) return;
+    speedOpen = false;
+    speedReset.classList.remove('is-active');
+    speedModal.classList.remove('is-open');
+    speedModal.setAttribute('aria-hidden', 'true');
+    window.unlockBackgroundScroll();
+    if (open) speedBtn.focus({ preventScroll: true });
+    else document.getElementById('menu-btn').focus({ preventScroll: true });
+  }
+  function applySpeed(v) {
+    try { localStorage.setItem(SPEED_KEY, String(v)); } catch (err) {}
+    window.dispatchEvent(new CustomEvent('readspeedchange', { detail: v }));
+  }
+  function commitSpeed() {
+    const raw = speedInput.value.trim();
+    if (raw !== '') applySpeed(clampSpeed(raw));
+    closeSpeed();
+  }
+
+  speedBtn.addEventListener('click', openSpeed);
+  speedReset.addEventListener('click', function () {
+    speedReset.blur();
+    speedReset.classList.add('is-active');
+    speedInput.value = String(SPEED_DEFAULT);
+    applySpeed(SPEED_DEFAULT);
+    speedInput.focus();
+    speedInput.select();
+  });
+  speedInput.addEventListener('input', function () {
+    speedReset.classList.remove('is-active');
+  });
+  speedModal.addEventListener('click', function (e) {
+    if (e.target === speedModal) closeSpeed();
+  });
+  speedInput.addEventListener('keydown', function (e) {
+    speedReset.classList.remove('is-active');
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    commitSpeed();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!speedOpen || e.key !== 'Escape') return;
+    e.preventDefault();
+    e.stopPropagation();
+    closeSpeed();
+  }, true);
 })();
 
 /* ═══════════════ 全站搜索（全屏模态） ═══════════════ */
@@ -1919,10 +2101,10 @@ window.trackPostView = function (slug) {
       panelChapters.style.maxHeight = (r.height * 0.55) + 'px';
       const cmW = Math.min(r.width - GAP * 2, 640);
       panelComments.style.top = fsTop + 'px';
-      panelComments.style.maxHeight = Math.max(200, window.innerHeight - fsTop - GAP) + 'px';
       panelComments.style.width = cmW + 'px';
       panelComments.style.left = (r.left + (r.width - cmW) / 2) + 'px';
       panelComments.style.right = 'auto';
+      fitCommentsPanel();
       panelSearch.style.top = fsTop + 'px';
       panelSearch.style.right = Math.max(window.innerWidth - r.right + GAP, 8) + 'px';
       panelSearch.style.width = w + 'px';
@@ -1936,10 +2118,10 @@ window.trackPostView = function (slug) {
     const cmW = Math.min(r.width - GAP * 2, 640);
     const cmTop = tr.bottom + GAP;
     panelComments.style.top = cmTop + 'px';
-    panelComments.style.maxHeight = Math.max(200, window.innerHeight - cmTop - GAP) + 'px';
     panelComments.style.width = cmW + 'px';
     panelComments.style.left = (r.left + (r.width - cmW) / 2) + 'px';
     panelComments.style.right = 'auto';
+    fitCommentsPanel();
     panelSearch.style.top = (r.top + GAP) + 'px';
     panelSearch.style.right = Math.max(window.innerWidth - r.right + GAP, 8) + 'px';
     panelSearch.style.width = w + 'px';
@@ -2055,10 +2237,16 @@ window.trackPostView = function (slug) {
   function setUsed(t) { postUsed.textContent = t; fsUsed.textContent = t; }
   function renderTimer() { setUsed(String(Math.floor(usedSeconds / 60)).padStart(2, '0')); }
   function estimateReadMin(text) {
+    const speed = typeof window.getReadSpeed === 'function' ? window.getReadSpeed() : 300;
     const zh = (text.match(/[一-龥]/g) || []).length;
     const en = text.replace(/[一-龥]/g, '').trim().split(/\s+/).filter(Boolean).length;
-    return Math.ceil(zh / 300 + en / 150) || 0;
+    /* 英文按中文速度的 70% 折算 */
+    return Math.ceil(zh / speed + en / (speed * 0.7)) || 0;
   }
+  window.addEventListener('readspeedchange', function () {
+    if (!currentSlug || !rawMarkdown || loadFailed) return;
+    postRead.textContent = String(estimateReadMin(rawMarkdown)).padStart(2, '0');
+  });
   function setTimerError() {
     eyeOpen.style.display = 'none'; eyeClosed.style.display = '';
     clockHand.setAttribute('points', '12 6 12 12 12 12');
@@ -2751,6 +2939,25 @@ window.trackPostView = function (slug) {
     giscusHost.hidden = true;
     giscusHost.innerHTML = '';
     commentsFallback.hidden = false;
+    panelComments.classList.remove('is-loaded');
+    panelComments.style.height = '';
+  }
+
+  /* 有内容后按内容撑开，最高为正文视口的 2/3，超出由 .cm-body 滚动 */
+  function fitCommentsPanel() {
+    const hostH = giscusHost.getBoundingClientRect().height;
+    if (hostH <= 0) return;
+    panelComments.classList.add('is-loaded');
+    const headH = panelComments.querySelector('.panel-head').offsetHeight;
+    const maxH = Math.max(180, postContent.getBoundingClientRect().height * 2 / 3);
+    const next = Math.max(180, Math.min(headH + hostH, maxH));
+    const cur = parseFloat(panelComments.style.height);
+    if (Number.isFinite(cur) && Math.abs(cur - next) < 1) return;
+    panelComments.style.height = next + 'px';
+  }
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(function () { fitCommentsPanel(); }).observe(giscusHost);
   }
   function sendGiscusConfig(extra) {
     const frame = giscusHost.querySelector('iframe.giscus-frame');
