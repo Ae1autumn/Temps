@@ -541,6 +541,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;
   padding:2.4rem var(--pad-x) 6rem;
   scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  --ss-bg:var(--bg);
 }
 .post-content::-webkit-scrollbar{width:5px}
 .post-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -686,7 +687,20 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .panel-close{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-3);transition:color .18s,background-color .18s}
 .panel-close:hover{color:var(--text);background:var(--bg)}
 .panel-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.panel-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.panel-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border) transparent;--ss-bg:var(--surface)}
+
+/* ═══ 滚动阴影（正文 / 目录 / 搜索结果）═══
+   local 遮盖层随内容滚动、scroll 阴影层钉在视口边缘：
+   某侧没有隐藏内容时遮盖层恰好挡住该侧阴影，有内容时阴影自然露出 */
+:root{--ss-shadow:color-mix(in srgb, var(--p-ink) 16%, transparent)}
+[data-theme="dark"]{--ss-shadow:rgba(0,0,0,.45)}
+.post-content,.panel-body{
+  background:
+    linear-gradient(var(--ss-bg) 30%, rgba(0,0,0,0)) center top / 100% 44px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, var(--ss-shadow), rgba(0,0,0,0)) center top / 100% 10px no-repeat scroll,
+    linear-gradient(var(--ss-bg) 30%, rgba(0,0,0,0)) center bottom / 100% 44px no-repeat local,
+    radial-gradient(farthest-side at 50% 100%, var(--ss-shadow), rgba(0,0,0,0)) center bottom / 100% 10px no-repeat scroll;
+}
 
 /* 章节面板 */
 .toc-list{padding:.3rem .55rem .6rem}
@@ -1708,7 +1722,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
       panelChapters.style.top = fsTop + 'px';
       panelChapters.style.left = '12px';
       panelChapters.style.width = w + 'px';
-      panelChapters.style.maxHeight = fsMaxH + 'px';
+      /* TOC 最大高度与普通模式保持一致 */
+      panelChapters.style.maxHeight = (r.height * 0.55) + 'px';
       panelComments.style.top = fsTop + 'px';
       panelComments.style.left = (r.left + GAP) + 'px';
       panelComments.style.right = (window.innerWidth - r.right + GAP) + 'px';
