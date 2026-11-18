@@ -558,14 +558,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content h1:first-child,.post-content h2:first-child{margin-top:0}
 .post-content p{font-size:.95rem;line-height:1.9;color:var(--text-2);margin-bottom:1.1rem;letter-spacing:.01em}
 .post-content strong{color:var(--text);font-weight:600}
-.post-content code{font-family:var(--font-mono);font-size:.8rem;background:var(--surface);border:var(--hairline) solid var(--border);border-radius:4px;padding:.12em .4em}
-.post-content pre{background:var(--surface);border:var(--hairline) solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;overflow-x:auto;margin:0 0 1.2rem}
-.post-content pre code{background:none;border:none;padding:0}
-.post-content blockquote{border-left:2px solid var(--accent);margin:1.2rem 0;padding:.4rem 0 .4rem 1.1rem;color:var(--text-3)}
+.post-content code{font-family:var(--font-mono);font-size:.8rem;background:var(--surface);border:var(--hairline) solid var(--border);border-radius:6px;padding:.12em .4em}
+.post-content pre{background:var(--surface);border:var(--hairline) solid var(--border);border-radius:var(--radius);padding:1.1rem 1.2rem;overflow-x:auto;margin:0 0 1.2rem}
+.post-content pre code{background:none;border:none;padding:0;border-radius:0}
+.post-content blockquote{border-left:var(--hairline) solid var(--accent);margin:1.2rem 0;padding:.4rem 0 .4rem 1.1rem;color:var(--text-3)}
 .post-content blockquote p{margin-bottom:.5rem}
 .post-content a{color:var(--accent);text-decoration:none;border-bottom:var(--hairline) solid var(--accent)}
 .post-content hr{border:none;border-top:var(--hairline) solid var(--border);margin:2.4rem auto;width:42%}
-.post-content img{max-width:100%;border-radius:10px;margin:1.2rem 0}
+.post-content img{max-width:100%;border-radius:var(--radius);border:var(--hairline) solid var(--border);margin:1.2rem 0}
 .post-content ul,.post-content ol{padding-left:1.4rem;margin-bottom:1.1rem;color:var(--text-2);font-size:.95rem;line-height:1.9}
 .post-content li{margin-bottom:.3rem}
 
@@ -573,11 +573,26 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .post-content h5,.post-content h6{font-family:var(--font-display);font-weight:500;color:var(--text-2);margin:2rem 0 .8rem;line-height:1.4;scroll-margin-top:1rem}
 .post-content h5{font-size:.95rem}
 .post-content h6{font-size:.88rem;color:var(--text-3)}
-.post-content .table-wrap{overflow-x:auto;overflow-y:hidden;margin:0 0 1.2rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-.post-content table{border-collapse:collapse;min-width:100%;font-size:.85rem;line-height:1.6}
-.post-content th,.post-content td{border:var(--hairline) solid var(--border);padding:.45rem .8rem;text-align:left;vertical-align:top}
+.post-content .table-wrap{
+  overflow-x:auto;overflow-y:hidden;margin:0 0 1.2rem;
+  border:var(--hairline) solid var(--border);border-radius:var(--radius);
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.post-content .table-wrap::-webkit-scrollbar{height:4px}
+.post-content .table-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* 可滚动余量的边缘渐隐（与 .sr-scroll 同一套交互语言） */
+.post-content .table-wrap.fade-l{-webkit-mask-image:linear-gradient(to right,transparent,#000 14px);mask-image:linear-gradient(to right,transparent,#000 14px)}
+.post-content .table-wrap.fade-r{-webkit-mask-image:linear-gradient(to left,transparent,#000 14px);mask-image:linear-gradient(to left,transparent,#000 14px)}
+.post-content .table-wrap.fade-l.fade-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(to right,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
+/* separate 模型：外框归容器，单元格只留内侧分隔线，圆角才能干净 */
+.post-content table{border-collapse:separate;border-spacing:0;min-width:100%;font-size:.85rem;line-height:1.6}
+.post-content th,.post-content td{border-right:var(--hairline) solid var(--border);border-bottom:var(--hairline) solid var(--border);padding:.45rem .8rem;text-align:left;vertical-align:top}
 .post-content th{background:var(--surface);font-weight:600;color:var(--text);white-space:nowrap}
 .post-content td{color:var(--text-2)}
+/* 每列保底宽度：列多/内容宽时撑出容器触发横向滚动，而不是被压缩 */
+.post-content td{min-width:5em}
+.post-content tr > *:last-child{border-right:none}
+.post-content tbody tr:last-child > *{border-bottom:none}
 /* marked 用 align 属性表达列对齐，优先级需盖过上面的 text-align */
 .post-content [align="center"]{text-align:center}
 .post-content [align="right"]{text-align:right}
@@ -588,7 +603,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 
 /* 长文本防溢出：超长单词、URL、行内代码允许断行（代码块仍横向滚动） */
 .post-content p,.post-content li,.post-content blockquote{overflow-wrap:break-word}
-.post-content td,.post-content th{overflow-wrap:break-word;min-width:3em}
+.post-content td,.post-content th{overflow-wrap:break-word}
 .post-content a{overflow-wrap:anywhere}
 .post-content code{overflow-wrap:anywhere;word-break:break-word}
 
@@ -2136,7 +2151,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
       srItems.forEach(function (item) {
         const scroll = item.querySelector('.sr-scroll');
         const b = scroll.querySelector('b');
-        scroll.scrollLeft = b.offsetLeft - (scroll.clientWidth - b.offsetWidth) / 2;
+        /* 用视口坐标差计算，避免 offsetLeft 受 positioned 祖先影响而偏离中心 */
+        const delta = b.getBoundingClientRect().left - scroll.getBoundingClientRect().left;
+        scroll.scrollLeft += delta - (scroll.clientWidth - b.getBoundingClientRect().width) / 2;
         updateFade(scroll);
       });
     });
@@ -2180,7 +2197,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     searchTimer = setTimeout(function () { runSearch(searchInput.value); }, 140);
   });
   searchInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); stepHit(e.shiftKey ? -1 : 1); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      /* 重新打开面板时高亮已被清空但关键词还在：此时 Enter 应重新执行搜索 */
+      if (!hits.length && searchInput.value.trim()) runSearch(searchInput.value);
+      else stepHit(e.shiftKey ? -1 : 1);
+    }
     if (e.key === 'Escape') { e.stopPropagation(); closeAllPanels(); btnSearchPost.focus(); }
   });
   searchPrev.addEventListener('click', function () { stepHit(-1); });
@@ -2333,6 +2355,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     postContent.innerHTML = '<div class="post-content-inner">' + marked.parse(rawMarkdown) + '</div>';
     postRead.textContent = String(estimateReadMin(rawMarkdown)).padStart(2, '0');
     buildHeadings();
+    /* 表格边缘渐隐初始态（内容已插入，此时可测得真实滚动余量） */
+    postContent.querySelectorAll('.table-wrap').forEach(updateFade);
     updateChapterBlocks();
     updateProgress();
 
@@ -2413,6 +2437,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
     const delta = target.getBoundingClientRect().top - postContent.getBoundingClientRect().top;
     postContent.scrollTop += delta - 20;
   });
+
+  /* 表格横向滚动：滚动时更新边缘渐隐（capture 才能捕获容器自身的 scroll） */
+  postContent.addEventListener('scroll', function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains('table-wrap')) updateFade(e.target);
+  }, { capture: true, passive: true });
 
   postBlur.addEventListener('click', function () {
     if (openPanel) { closeAllPanels(); return; }
