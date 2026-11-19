@@ -1,18 +1,22 @@
 {
   "posts": [
+    // >>> issue-sync:posts:start
     {
-      "slug": "Text",
-      "title": "Text",
-      "date": "2026.11.19",
-      "tags": ["Text"],
-      "excerpt": "Text",
+      "slug": "test-t",
+      "title": "测试文档：长文档渲染与结构测试",
+      "date": "2026.11.29",
+      "tags": [
+        "测试"
+      ],
+      "excerpt": "覆盖 Markdown 常见语法与扩展的渲染回归测试文档。",
       "src": "./posts/test-t.md",
-      "pin": "true"
+      "pin": true
     },
+    // <<< issue-sync:posts:end
   ],
 
   "goatcounter": {
-    "code": "",
+    "code": "alipay",
     "pathPrefix": "/post/",
     "cacheKey": "ae_views_v1",
     "cacheTTL": 1800000
@@ -20,9 +24,9 @@
 
   "giscus": {
     "repo": "Ae1autumn/ae1autumn.github.io",
-    "repoId": "",
-    "category": "Comments",
-    "categoryId": "",
+    "repoId": "R_kgDOQzUe6Q",
+    "category": "Announcements",
+    "categoryId": "DIC_kwDOQzUe6c4DLcJO",
     "mapping": "specific",
     "strict": "1",
     "reactionsEnabled": "1",
